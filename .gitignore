@@ -1,0 +1,76 @@
+# dependencies
+node_modules/
+package-lock.json
+__pycache__/
+*.pyc
+
+# unrelated project that happens to share this working directory
+luma-auto-approve/
+
+# tool state
+.gstack/
+.vercel/
+.claude/
+
+# scratch renders and intermediate exports
+build/off/
+build/prev/
+build/tpl/
+build/pptpng/
+build/prep/Slide*.PNG
+build/prep/slides_b64.json
+build/test_*.png
+build/light*.png
+build/s[1-6].png
+build/plates.html
+build/vimaan_deck.html
+
+# throwaway patch scripts from the build history
+build/_patch*.py
+build/_fitfix.py
+build/_bulletin.py
+build/_derobot.py
+build/_sheet*.png
+build/_fix*.png
+# ...but _prims.py is a real dependency of make_final.py
+!build/_prims.py
+
+# superseded generators
+build/gen_art.py
+build/make_pptx.py
+build/make_visual.py
+build/make_official.py
+build/shot*.js
+generate_pdf.js
+
+# superseded AI-generated artwork, replaced by generated charts
+airfare visuals/
+artwork/
+build/ai_*.png
+build/v_*.jpg
+build/g_*.png
+build/ic_*.png
+build/p_*.png
+
+# duplicates of the root-level deliverables
+build/SIH2026-*.pptx
+build/SIH2026-*.pdf
+build/SOLUTION_PLAN.md
+build/*.bak.pptx
+build/*PREVIOUS*.pptx
+
+# superseded intermediate decks and guides
+SIH26056_VIMAAN_Idea_Submission.*
+SIH26056_Airfare_Index_Team_Guide.*
+SIH26056_Team_Guide_v2.pdf
+SIH_2026_Deep_Dive_Analysis.*
+guide.txt
+
+# prototype iteration backups
+prototype/*.bak.html
+prototype/vimaan-console.v*.html
+
+# os / editor
+Thumbs.db
+.DS_Store
+*.swp

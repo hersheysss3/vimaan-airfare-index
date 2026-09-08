@@ -1,0 +1,1916 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="VIMAAN - a real-time airfare price index for India, built for Smart India Hackathon 2026 problem SIH26056.">
+<meta name="color-scheme" content="light dark">
+<title>VIMAAN Index Console</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/framer-motion@13.2.0/dist/dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* ============================================================ TOKENS
+   One rule governs this palette: chrome is monochrome, and the only
+   saturated colour on the page belongs to the data. Interaction is
+   signalled by weight, rule and position, not by hue.                  */
+:root{
+  color-scheme: light;
+  --paper:#FBFBFA;
+  --surface:#FFFFFF;
+  --surface-2:#F5F5F3;
+  --raised:#EFEFEC;
+  --ink:#17181A;
+  --ink-2:#4A4D52;
+  --muted:#83878D;
+  --faint:#A6AAAF;
+  --rule:#E5E5E2;
+  --rule-strong:#CFCFCB;
+  --hair:rgba(23,24,26,.10);
+
+  --accent:#17181A;            /* interaction = ink */
+  --accent-soft:#F1F1EE;
+  --focus:#5B6470;             /* distinct from every data hue */
+
+  --s1:#2a78d6;                /* data only, never chrome */
+  --s2:#c8501e;
+  --s3:#12805b;
+
+  --good:#0a7d0a;
+  --warn:#8a5c00;
+  --warn-fill:#d9a22b;
+
+  --q1:#eef4fc; --q2:#d9e8f8; --q3:#bcd7f2; --q4:#9cc3ea;
+  --q5:#74a9e0; --q6:#4f8fd4; --q7:#3573bd; --q8:#255a9b; --q9:#17406f;
+
+  --band:rgba(42,120,214,.10);
+  --spot:rgba(23,24,26,.07);
+
+  --ff:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --fm:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+
+  --ease:cubic-bezier(.22,.61,.20,1);
+  --sp:22px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#0C0D0E;
+    --surface:#141517;
+    --surface-2:#1B1D1F;
+    --raised:#232629;
+    --ink:#F2F2F0;
+    --ink-2:#B4B7BB;
+    --muted:#7C8085;
+    --faint:#63676C;
+    --rule:#26282B;
+    --rule-strong:#383B3F;
+    --hair:rgba(242,242,240,.11);
+    --accent:#F2F2F0;
+    --accent-soft:#1E2023;
+    --focus:#8A929C;
+    --s1:#3987e5; --s2:#e8763e; --s3:#22b183;
+    --good:#3ec46b; --warn:#e3a33f; --warn-fill:#e3a33f;
+    --q1:#17406f; --q2:#255a9b; --q3:#3573bd; --q4:#4f8fd4;
+    --q5:#74a9e0; --q6:#9cc3ea; --q7:#bcd7f2; --q8:#d9e8f8; --q9:#eef4fc;
+    --band:rgba(57,135,229,.14);
+    --spot:rgba(242,242,240,.09);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#0C0D0E; --surface:#141517; --surface-2:#1B1D1F; --raised:#232629;
+  --ink:#F2F2F0; --ink-2:#B4B7BB; --muted:#7C8085; --faint:#63676C;
+  --rule:#26282B; --rule-strong:#383B3F; --hair:rgba(242,242,240,.11);
+  --accent:#F2F2F0; --accent-soft:#1E2023; --focus:#8A929C;
+  --s1:#3987e5; --s2:#e8763e; --s3:#22b183;
+  --good:#3ec46b; --warn:#e3a33f; --warn-fill:#e3a33f;
+  --q1:#17406f; --q2:#255a9b; --q3:#3573bd; --q4:#4f8fd4;
+  --q5:#74a9e0; --q6:#9cc3ea; --q7:#bcd7f2; --q8:#d9e8f8; --q9:#eef4fc;
+  --band:rgba(57,135,229,.14); --spot:rgba(242,242,240,.09);
+}
+
+/* ============================================================ BASE */
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--ff); font-size:15.5px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; letter-spacing:-.003em;
+}
+h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.018em;line-height:1.22}
+p{margin:0}
+button{font-family:inherit;font-size:inherit;color:inherit}
+svg{flex-shrink:0}
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:3px}
+.mono{font-family:var(--fm);font-variant-numeric:tabular-nums}
+.lbl{
+  font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ============================================================ CHROME */
+.top{
+  position:sticky;top:0;z-index:60;
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  backdrop-filter:saturate(150%) blur(14px);
+  border-bottom:1px solid var(--hair);
+  display:flex;align-items:center;gap:26px;padding:0 26px;min-height:62px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.brand .w{font-size:17px;font-weight:600;letter-spacing:.02em}
+.brand .sub{display:none}
+
+.tabs{display:flex;gap:26px;flex-wrap:wrap}
+.tab{
+  background:none;border:0;padding:19px 0 17px;min-height:44px;
+  color:var(--muted);font-size:14.5px;font-weight:500;cursor:pointer;
+  white-space:nowrap;position:relative;
+  transition:color .2s var(--ease);
+}
+.tab svg{display:none}
+.tab:hover{color:var(--ink-2)}
+.tab::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:var(--accent);transform:scaleX(0);transform-origin:center;
+  transition:transform .26s var(--ease);
+}
+.tab[aria-selected="true"]{color:var(--ink);font-weight:600}
+.tab[aria-selected="true"]::after{transform:scaleX(1)}
+
+.topright{margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.clockw{text-align:right;line-height:1.25}
+.clockw .t{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--ink-2)}
+.clockw .n{font-family:var(--fm);font-size:10px;color:var(--faint)}
+
+.btn{
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;
+  background:transparent;border:1px solid var(--rule-strong);border-radius:7px;
+  padding:10px 16px;min-height:42px;font-size:14px;font-weight:500;
+  color:var(--ink);cursor:pointer;
+  transition:background .2s var(--ease),border-color .2s var(--ease),transform .12s var(--ease);
+}
+.btn:hover{background:var(--surface-2);border-color:var(--ink-2)}
+.btn:active{transform:scale(.985)}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.primary:hover{background:var(--accent);filter:brightness(1.28)}
+.btn.sm{min-height:34px;padding:7px 12px;font-size:13px;border-radius:6px}
+
+/* ============================================================ LAYOUT */
+.view{
+  padding:var(--sp) 26px 72px;max-width:1440px;margin:0 auto;
+  animation:rise .34s var(--ease) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.view[hidden]{display:none}
+.grid{display:grid;gap:var(--sp)}
+.card{
+  background:var(--surface);border:1px solid var(--hair);border-radius:11px;
+  padding:22px 24px;min-width:0;position:relative;
+  transition:box-shadow .3s var(--ease),border-color .3s var(--ease);
+}
+.card-h{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.finding{font-size:17.5px;font-weight:600;letter-spacing:-.02em;line-height:1.3;color:var(--ink)}
+.sub{color:var(--muted);font-size:14px;margin-top:6px;max-width:66ch;line-height:1.55}
+
+.explain{
+  display:flex;gap:12px;align-items:flex-start;
+  border-left:2px solid var(--rule-strong);
+  padding:2px 0 2px 16px;margin:0 0 var(--sp);
+  font-size:15px;line-height:1.6;color:var(--ink-2);max-width:96ch;
+}
+.explain svg{display:none}
+.explain b{font-weight:600;color:var(--ink)}
+
+/* ============================================================ GLOSSARY */
+.gl{
+  background:none;border:0;padding:0;cursor:help;color:inherit;font:inherit;
+  border-bottom:1px solid var(--rule-strong);
+  transition:border-color .2s var(--ease),color .2s var(--ease);
+}
+.gl:hover{color:var(--ink);border-bottom-color:var(--ink)}
+#glossPop{
+  position:fixed;z-index:90;max-width:300px;background:var(--surface);
+  border:1px solid var(--hair);border-radius:9px;padding:14px 16px;
+  box-shadow:0 18px 44px -16px rgba(0,0,0,.30);font-size:13.5px;line-height:1.55;
+  color:var(--ink-2);display:none;
+}
+#glossPop.on{display:block;animation:pop .18s var(--ease) both}
+@keyframes pop{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+#glossPop b{display:block;color:var(--ink);font-size:14px;margin-bottom:5px}
+
+/* ============================================================ HERO */
+.hero3d{
+  position:relative;margin:calc(var(--sp) * -1) -26px 30px;
+  min-height:clamp(340px,46vh,470px);
+  background:var(--surface-2);
+  border-bottom:1px solid var(--hair);
+  overflow:hidden;display:grid;grid-template-columns:minmax(300px,48%) 1fr;align-items:center;
+}
+#globeWrap{position:relative;min-height:clamp(300px,44vh,460px);cursor:grab}
+#globeWrap:active{cursor:grabbing}
+.hero-copy{padding:46px 20px 46px 26px;position:relative;z-index:2;max-width:620px}
+.eyebrow{
+  font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:20px;
+}
+.eyebrow::after{display:none}
+.hero-copy h1{
+  font-family:var(--ff);font-weight:600;color:var(--ink);letter-spacing:-.032em;
+  font-size:clamp(31px,3.6vw,46px);line-height:1.1;margin-bottom:18px;
+}
+.hero-copy h1 em{font-style:normal;color:var(--muted)}
+.hero-copy p{color:var(--ink-2);font-size:16px;line-height:1.62;max-width:46ch}
+.hero-figs{display:flex;gap:38px;flex-wrap:wrap;margin-top:30px;padding-top:24px;border-top:1px solid var(--hair)}
+.hero-fig-i .v{font-family:var(--fm);font-size:23px;font-weight:500;color:var(--ink);letter-spacing:-.02em;line-height:1}
+.hero-fig-i .k{font-family:var(--fm);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.btn-gold{
+  display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--surface);
+  border:1px solid var(--accent);border-radius:7px;padding:12px 20px;min-height:44px;
+  font-weight:500;font-size:14.5px;cursor:pointer;
+  transition:filter .2s var(--ease),transform .12s var(--ease);
+}
+.btn-gold:hover{filter:brightness(1.3)}
+.btn-gold:active{transform:scale(.985)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--ink);
+  border:1px solid var(--rule-strong);border-radius:7px;padding:12px 20px;min-height:44px;
+  font-weight:500;font-size:14.5px;cursor:pointer;
+  transition:background .2s var(--ease),border-color .2s var(--ease);
+}
+.btn-ghost:hover{background:var(--surface);border-color:var(--ink-2)}
+.btn-gold svg,.btn-ghost svg{width:15px;height:15px}
+.globe-hint{
+  position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+  font-family:var(--fm);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);pointer-events:none;white-space:nowrap;
+  transition:opacity .4s var(--ease);
+}
+@media (max-width:960px){
+  .hero3d{grid-template-columns:1fr;min-height:0}
+  .hero-copy{padding:32px 22px 28px;order:2}
+  #globeWrap{order:1;min-height:280px}
+}
+
+.srule{
+  display:flex;align-items:center;gap:14px;font-family:var(--fm);font-size:10.5px;
+  font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin:34px 0 16px;
+}
+.srule::after{content:"";flex:1;height:1px;background:var(--rule)}
+
+/* ============================================================ HERO PANEL */
+.hero{
+  display:grid;grid-template-columns:minmax(270px,320px) 1fr;
+  background:var(--surface);border:1px solid var(--hair);border-radius:11px;overflow:hidden;
+}
+.hero-l{padding:24px 26px;border-right:1px solid var(--hair);display:flex;flex-direction:column}
+.hero-fig{font-family:var(--fm);font-size:56px;font-weight:500;line-height:1;letter-spacing:-.04em;margin:10px 0 6px}
+.hero-delta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.delta{display:inline-flex;align-items:center;gap:5px;font-family:var(--fm);font-size:13px;font-weight:500;color:var(--ink-2)}
+.delta .sm{font-size:10px;color:var(--faint);letter-spacing:.06em}
+.badge{display:none}
+.prov{border-top:1px solid var(--hair);padding-top:16px;margin-top:auto;display:flex;flex-direction:column;gap:9px}
+.prow{display:flex;justify-content:space-between;gap:12px;font-size:13px}
+.prow .k{color:var(--muted);font-family:var(--fm);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase}
+.prow .v{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--ink-2)}
+.hero-r{padding:22px 24px 14px;min-width:0}
+
+/* ============================================================ STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;background:var(--hair);border:1px solid var(--hair);border-radius:11px;overflow:hidden}
+.stat{background:var(--surface);padding:18px 20px;display:flex;flex-direction:column;gap:3px}
+.stat .k{font-family:var(--fm);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--fm);font-size:25px;font-weight:500;letter-spacing:-.028em;line-height:1.12;color:var(--ink)}
+.stat .n{font-size:12.5px;color:var(--faint);line-height:1.45}
+
+/* ============================================================ CHART */
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin:12px 0 4px}
+.lg{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.lg svg{width:20px;height:8px;overflow:visible}
+.lg i.sq{width:10px;height:10px;border-radius:2px;display:block;flex-shrink:0}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{
+  position:absolute;pointer-events:none;z-index:30;opacity:0;
+  transition:opacity .14s var(--ease);
+  background:var(--surface);border:1px solid var(--hair);border-radius:8px;
+  padding:10px 13px;font-size:12.5px;min-width:148px;
+  box-shadow:0 14px 36px -14px rgba(0,0,0,.32);
+}
+.tip.on{opacity:1}
+.tip .th{font-family:var(--fm);font-size:10px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;margin-bottom:6px}
+.tip .tr{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:4px}
+.tip .tr .nm{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.tip .tr i{width:9px;height:9px;border-radius:2px;display:block}
+.tip .tr .vv{font-family:var(--fm);font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
+
+/* ============================================================ CONTROLS */
+.ctl{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
+.seg,.viewseg{display:flex;background:var(--surface-2);border-radius:8px;padding:3px;gap:3px}
+.seg button,.viewseg button{
+  background:none;border:0;padding:8px 14px;min-height:36px;border-radius:6px;cursor:pointer;
+  font-size:13px;color:var(--muted);font-weight:500;
+  transition:background .2s var(--ease),color .2s var(--ease);
+}
+.seg button:hover,.viewseg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"],.viewseg button[aria-pressed="true"]{
+  background:var(--surface);color:var(--ink);font-weight:600;
+  box-shadow:0 1px 3px rgba(0,0,0,.07);
+}
+input[type=range]{-webkit-appearance:none;appearance:none;background:none;height:30px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:var(--rule-strong);border-radius:2px}
+input[type=range]::-moz-range-track{height:3px;background:var(--rule-strong);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);
+  border:3px solid var(--surface);margin-top:-8.5px;box-shadow:0 1px 5px rgba(0,0,0,.26);
+  transition:transform .14s var(--ease);
+}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.14)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--surface)}
+
+/* ============================================================ MAP */
+.mapwrap{position:relative;background:var(--surface-2);border-radius:8px}
+.mapwrap canvas{display:block;width:100%;height:auto}
+.maptip{
+  position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--hair);
+  border-radius:7px;padding:9px 11px;font-size:12.5px;opacity:0;
+  transition:opacity .14s var(--ease);z-index:10;white-space:nowrap;
+  box-shadow:0 14px 36px -14px rgba(0,0,0,.32);
+}
+.maptip.on{opacity:1}
+
+/* ============================================================ TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{
+  font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  text-align:left;font-weight:500;padding:0 12px 9px 0;border-bottom:1px solid var(--rule);
+}
+.tbl th.r,.tbl td.r{text-align:right;padding-right:0}
+.tbl td{padding:11px 12px 11px 0;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr{cursor:pointer;transition:background .18s var(--ease)}
+.tbl tbody tr:hover td{background:var(--surface-2)}
+.tbl tr[aria-selected="true"] td{background:var(--surface-2);color:var(--ink);font-weight:600}
+.tbl .num{font-family:var(--fm);font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:10px;vertical-align:middle}
+
+pre.code{
+  margin:0;background:var(--surface-2);border:1px solid var(--hair);border-radius:8px;
+  padding:15px 17px;font-family:var(--fm);font-size:11.5px;line-height:1.75;
+  overflow-x:auto;color:var(--ink-2);
+}
+pre.code .k,pre.code .s,pre.code .n{color:var(--ink-2)}
+
+/* ============================================================ SLO */
+.slo{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--rule)}
+.slo:last-child{border-bottom:0}
+.slo svg{width:15px;height:15px}
+.slo .nm{font-size:14px;flex:1;min-width:0;font-weight:500;color:var(--ink)}
+.slo .nm span{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.slo .bar{width:88px;height:3px;background:var(--rule);border-radius:2px;overflow:hidden;flex-shrink:0}
+.slo .bar i{display:block;height:100%;border-radius:2px}
+.slo .pc{font-family:var(--fm);font-size:13px;font-weight:500;width:54px;text-align:right;flex-shrink:0;color:var(--ink-2)}
+
+.note{font-size:13px;color:var(--muted);margin-top:16px;padding-top:15px;border-top:1px solid var(--rule);line-height:1.6}
+.note b{color:var(--ink-2);font-weight:600}
+
+/* ============================================================ 3D SURFACE */
+#surf3d{position:relative;width:100%;height:330px;border-radius:9px;overflow:hidden;
+  background:var(--surface-2);cursor:grab}
+#surf3d:active{cursor:grabbing}
+#surf3d canvas{display:block;width:100%;height:100%}
+.surf3d-hint{
+  position:absolute;right:13px;bottom:11px;font-family:var(--fm);font-size:9.5px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--faint);pointer-events:none;
+}
+
+/* ============================================================ STORY */
+.spot{box-shadow:0 0 0 1px var(--ink),0 0 0 8px var(--spot)!important;z-index:20}
+#storyBar{
+  position:fixed;left:0;right:0;bottom:0;z-index:80;
+  background:color-mix(in srgb,var(--surface) 94%,transparent);
+  backdrop-filter:saturate(150%) blur(16px);
+  border-top:1px solid var(--hair);
+  box-shadow:0 -14px 40px -18px rgba(0,0,0,.30);
+  padding:18px 26px;display:none;
+}
+#storyBar.on{display:block;animation:slideUp .32s var(--ease) both}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.story-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.story-step{
+  font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);flex-shrink:0;
+}
+.story-txt{flex:1;min-width:260px;font-size:15.5px;line-height:1.55;color:var(--ink-2)}
+.story-txt b{font-weight:600;color:var(--ink)}
+.story-btns{display:flex;gap:9px;align-items:center;flex-shrink:0}
+.pips{display:flex;gap:6px;margin-right:6px}
+.pips i{width:5px;height:5px;border-radius:50%;background:var(--rule-strong);display:block;transition:all .26s var(--ease)}
+.pips i.on{background:var(--ink);width:16px;border-radius:3px}
+.pips i.done{background:var(--muted)}
+body.storyOn{padding-bottom:118px}
+
+@media (max-width:1000px){
+  .hero{grid-template-columns:1fr}
+  .hero-l{border-right:0;border-bottom:1px solid var(--hair)}
+  .g2{grid-template-columns:1fr!important}
+}
+@media (max-width:640px){
+  .clockw{display:none}
+  .view{padding:16px 16px 56px}
+  .hero3d{margin:-16px -16px 24px}
+  :root{--sp:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;color:var(--accent)" aria-hidden="true">
+      <path d="M3 20h18M6 16l3-9 3 5 3-7 3 11"/>
+    </svg>
+    <div>
+      <div class="w">VIM<b>AA</b>N</div>
+      <div class="sub">Airfare Price Index</div>
+    </div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Console sections">
+    <button class="tab" role="tab" aria-selected="true" data-v="v-index">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/></svg>
+      The Index
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-v="v-surface">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+      Why One Price Isn't Enough
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-v="v-method">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6l-6 9a2 2 0 002 3h14a2 2 0 002-3l-6-9V3"/><path d="M8 3h8"/></svg>
+      Why The Maths Matters
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-v="v-quality">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.4 8.3-8 9-4.6-.7-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      Can You Trust It
+    </button>
+  </nav>
+
+  <div class="topright">
+    <button class="btn primary" id="storyStart">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
+      Guide me
+    </button>
+    <div class="clockw">
+      <div class="t" id="clk">—</div>
+      <div class="n" id="nxt">—</div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================ THE INDEX -->
+<main class="view" id="v-index" role="tabpanel">
+
+  <section class="hero3d">
+    <div class="hero-copy">
+      <div class="eyebrow">Ministry of Statistics · Problem SIH26056</div>
+      <h1>Every fare in India,<br>reduced to <em>one honest number</em></h1>
+      <p>India's inflation figure still takes its airfare from 78 routes, checked by hand, once a month.
+         VIMAAN reads 517 routes three times a day, and turns millions of
+         moving prices into one index the Reserve Bank can rely on.</p>
+      <div class="hero-figs">
+        <div class="hero-fig-i"><div class="v">517</div><div class="k">Routes watched</div></div>
+        <div class="hero-fig-i"><div class="v">3×</div><div class="k">Every day</div></div>
+        <div class="hero-fig-i"><div class="v">151k</div><div class="k">Fares a day</div></div>
+        <div class="hero-fig-i"><div class="v">118.7</div><div class="k">Index, Aug 2026</div></div>
+      </div>
+      <div class="hero-cta">
+        <button class="btn-gold" id="heroGuide">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
+          Walk me through it
+        </button>
+        <button class="btn-ghost" id="heroSurface">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 17l6-6 4 4 7-8"/></svg>
+          See the price surface
+        </button>
+      </div>
+    </div>
+    <div id="globeWrap" role="img" aria-label="Rotating globe showing India's monitored air routes">
+      <div class="globe-hint" id="globeHint">Drag to spin</div>
+    </div>
+  </section>
+
+  <div class="explain">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
+    <div><b>What this page shows.</b> One number that says how much air travel costs in India this month, compared with 2024.
+    <span>It is built from 4.4 million fares collected automatically across 517 routes, three times a day.</span></div>
+  </div>
+
+  <div class="grid" style="gap:14px">
+    <section class="hero" id="cardHero">
+      <div class="hero-l">
+        <div class="lbl">National Airfare Price Index</div>
+        <div class="hero-fig">118.7</div>
+        <div class="hero-delta">
+          <span class="delta"><svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg>1.8% <span class="sm">vs last month</span></span>
+          <span class="delta"><svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg>6.4% <span class="sm">vs last year</span></span>
+        </div>
+        <p style="font-size:14px;color:var(--ink-2);margin-bottom:4px">
+          <b>Read it like this:</b> flying costs <b>18.7% more</b> than it did in the 2024 base year.
+        </p>
+        <p style="font-size:12.5px;color:var(--muted)">
+          August 2026 · <span class="gl" data-t="base" tabindex="0" role="button">base 2024 = 100</span> ·
+          <span class="gl" data-t="basis" tabindex="0" role="button">departure-month basis</span> ·
+          <span class="gl" data-t="geks" tabindex="0" role="button">GEKS–Jevons multilateral</span>
+        </p>
+        <div class="prov" id="provBlock">
+          <div class="lbl" style="margin-bottom:1px">Proof attached to this number</div>
+          <div class="prow"><span class="k">Fares used</span><span class="v">4,412,806</span></div>
+          <div class="prow"><span class="k"><span class="gl" data-t="coverage" tabindex="0" role="button">Coverage</span></span><span class="v">98.2%</span></div>
+          <div class="prow"><span class="k"><span class="gl" data-t="imputed" tabindex="0" role="button">Estimated</span></span><span class="v">1.4%</span></div>
+          <div class="prow"><span class="k">Revised since</span><span class="v">never</span></div>
+          <div class="prow"><span class="k"><span class="gl" data-t="hash" tabindex="0" role="button">Repro hash</span></span><span class="v" style="font-size:11px">a7f3c02e…</span></div>
+        </div>
+      </div>
+      <div class="hero-r">
+        <div class="card-h">
+          <div>
+            <div class="finding">Airfares are 18.7% above their 2024 level</div>
+            <p class="sub">The orange line is what fares actually did. The blue line removes predictable seasonal swings, like festivals and school holidays, so the real trend is visible.</p>
+          </div>
+          <div class="seg" id="segAdj" role="group" aria-label="Series shown">
+            <button aria-pressed="true" data-adj="both">Both</button>
+            <button aria-pressed="false" data-adj="raw">Actual</button>
+            <button aria-pressed="false" data-adj="sa">Seasonal removed</button>
+          </div>
+        </div>
+        <div class="legend" id="lgIndex"></div>
+        <div class="chart" id="chIndex"><div class="tip"></div></div>
+      </div>
+    </section>
+
+    <div class="stats">
+      <div class="stat"><span class="k">Routes watched</span><span class="v">517</span><span class="n">the manual method covers 78</span></div>
+      <div class="stat"><span class="k">Checks per day</span><span class="v">3</span><span class="n">the manual method: 1 per month</span></div>
+      <div class="stat"><span class="k">Fares read daily</span><span class="v">151.3k</span><span class="n">no human in the loop</span></div>
+      <div class="stat"><span class="k">How stale</span><span class="v">0 days</span><span class="n">the manual method: ~60 days</span></div>
+      <div class="stat"><span class="k">Share of CPI</span><span class="v">9.43%</span><span class="n">transport group, holds air travel</span></div>
+    </div>
+
+    <div class="grid g2" style="grid-template-columns:1.32fr 1fr">
+      <section class="card" id="cardWater">
+        <div class="finding">Six routes account for most of August's rise</div>
+        <p class="sub">Busy routes move the national number more than quiet ones, because each route is weighted by how many people actually fly it.</p>
+        <div class="legend">
+          <span class="lg"><i class="sq" style="background:var(--s1)"></i>Pushed the index up</span>
+          <span class="lg"><i class="sq" style="background:var(--s2)"></i>Pulled it down</span>
+        </div>
+        <div class="chart" id="chWaterfall"><div class="tip"></div></div>
+      </section>
+
+      <section class="card" id="cardSdmx">
+        <div class="finding">The number leaves in a format MoSPI already reads</div>
+        <p class="sub">No integration project. This is <span class="gl" data-t="sdmx" tabindex="0" role="button">SDMX-JSON</span>, the standard that national statistics offices exchange data in.</p>
+        <pre class="code" id="sdmx" style="margin-top:11px"></pre>
+        <div class="note"><b>Nothing is published without proof.</b> Every value carries how complete it is, how much was estimated, and a hash that lets anyone re-derive it from the original saved pages.</div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<!-- ============================================================ SURFACE -->
+<main class="view" id="v-surface" hidden role="tabpanel">
+  <div class="explain">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
+    <div><b>The core idea.</b> A flight doesn't have <em>one</em> price. The same seat costs different amounts depending on the day you fly and how far ahead you book. Checking one price a month tells you almost nothing.</div>
+  </div>
+
+  <div class="grid g2" style="grid-template-columns:minmax(320px,.82fr) 1.18fr">
+    <section class="card" id="cardMap">
+      <div class="finding">Pick a route</div>
+      <p class="sub">Thicker line = more passengers. Orange = fares rose this year, blue = fell.</p>
+      <div class="mapwrap" style="margin-top:11px"><canvas id="map" role="img" aria-label="Map of India showing 18 monitored air routes"></canvas><div class="maptip" id="mapTip"></div></div>
+      <div class="legend" style="margin:10px 0 2px">
+        <span class="lg"><i class="sq" style="background:var(--s2)"></i>Fares up vs last year</span>
+        <span class="lg"><i class="sq" style="background:var(--s1)"></i>Fares down</span>
+      </div>
+      <div style="max-height:198px;overflow:auto;margin-top:8px">
+        <table class="tbl" id="routeTbl">
+          <caption class="sr">Monitored routes with weight, index and yearly change</caption>
+          <thead><tr><th>Route</th><th class="r">Weight</th><th class="r">Index</th><th class="r">vs last yr</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="cardSurface">
+      <div class="card-h">
+        <div>
+          <div class="finding">One route, one day, <span class="mono">80</span> different prices</div>
+          <p class="sub"><span id="surfRoute" class="mono" style="color:var(--accent);font-weight:600">DEL → BOM</span>
+           , down the side is how many days ahead you book, across the top is the day you fly.</p>
+        </div>
+        <button class="btn sm" id="oneCellBtn" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          Show what the manual check sees
+        </button>
+      </div>
+      <div class="ctl" style="margin:12px 0 10px">
+        <div class="viewseg" id="surfMode" role="group" aria-label="Surface view mode">
+          <button aria-pressed="false" data-m="3d">3D surface</button>
+          <button aria-pressed="true" data-m="grid">Price grid</button>
+        </div>
+        <span class="lbl" style="margin:0">Height and colour both show the fare</span>
+      </div>
+      <div id="surf3d" hidden><div class="surf3d-hint">Drag to orbit · scroll to zoom</div></div>
+      <div class="chart" id="chSurface"><div class="tip"></div></div>
+
+      <div class="grid g2" style="grid-template-columns:1fr 1fr;margin-top:15px">
+        <div>
+          <div class="finding" style="font-size:14.5px">Booking late costs you <span id="penalty">2.4×</span></div>
+          <p class="sub" style="font-size:12.5px">Median fare by how far ahead you book. India publishes no such figure today.</p>
+          <div class="legend" style="margin:7px 0"><span class="lg"><i class="sq" style="background:var(--s1)"></i>Typical fare</span></div>
+          <div class="chart" id="chLead"><div class="tip"></div></div>
+        </div>
+        <div>
+          <div class="finding" style="font-size:14.5px">What each method actually sees</div>
+          <div class="stats" style="grid-template-columns:1fr 1fr;margin-top:9px">
+            <div class="stat"><span class="k">Manual, today</span><span class="v" style="color:var(--s2)">1</span><span class="n">price, once a month</span></div>
+            <div class="stat"><span class="k">VIMAAN</span><span class="v" style="color:var(--s1)">2,400</span><span class="n">prices, every month</span></div>
+          </div>
+          <div class="note">
+            The one price a manual check happens to catch sits <b id="cellGap">18%</b> away from what this route
+            typically costs. That error goes straight into the inflation figure the RBI uses.
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ============================================================ METHOD -->
+<main class="view" id="v-method" hidden role="tabpanel">
+  <div class="explain">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
+    <div><b>Collecting more prices isn't enough.</b> How you average them decides the answer. Below, both lines use <em>exactly the same fares</em>, and those fares have <b>no real inflation at all</b>. Only the averaging method differs.</div>
+  </div>
+
+  <section class="card" id="cardMethod">
+    <div class="finding">Same fares. Two methods. A 13-point disagreement.</div>
+    <p class="sub">Drag the slider. It controls how far back the method looks when comparing prices. Watch the orange line's error disappear.</p>
+
+    <div class="ctl" style="margin-top:15px;gap:14px">
+      <label for="win" class="lbl" style="margin:0">How far back it compares</label>
+      <input type="range" id="win" min="1" max="25" value="1" step="1" style="width:290px"
+             aria-describedby="winV">
+      <span class="mono" id="winV" style="font-weight:600;font-size:16px;min-width:96px" aria-live="polite">1 month</span>
+      <button class="btn sm" id="winPlay">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
+        Animate it
+      </button>
+    </div>
+
+    <div class="stats" style="margin-bottom:15px">
+      <div class="stat"><span class="k">Real inflation in this data</span><span class="v">0.0</span><span class="n">there is none, by design</span></div>
+      <div class="stat"><span class="k">Simple daily averaging</span><span class="v" style="color:var(--s2)" id="mNaive">+13.7</span><span class="n">points of inflation it invented</span></div>
+      <div class="stat"><span class="k">VIMAAN's method</span><span class="v" style="color:var(--s1)" id="mGeks">+13.6</span><span class="n">points of error remaining</span></div>
+      <div class="stat"><span class="k">Error removed</span><span class="v" id="mCut">1%</span><span class="n">at this setting</span></div>
+    </div>
+
+    <div class="legend" id="lgMethod"></div>
+    <div class="chart" id="chMethod"><div class="tip"></div></div>
+
+    <div class="grid g2" style="grid-template-columns:1fr 1fr;margin-top:16px">
+      <div class="note" style="border-top:2px solid var(--s2);padding-top:12px">
+        <b style="color:var(--s2)">The simple way is wrong.</b> Airline prices jump between fare buckets constantly.
+        If you just compare each day to the day before and chain those together, the index ratchets upward and
+        never comes back down, even when prices do. Statisticians call this
+        <span class="gl" data-t="drift" tabindex="0" role="button">chain drift</span>. Most teams build this line and never notice.
+      </div>
+      <div class="note" style="border-top:2px solid var(--s1);padding-top:12px">
+        <b style="color:var(--s1)">What we do instead.</b> Compare every month against every other month in the
+        window, then take the average of all those comparisons. Because it is symmetric, the error cancels out.
+        This is the method <span class="gl" data-t="ons" tabindex="0" role="button">the UK's ONS</span> and Statistics Netherlands already use.
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============================================================ TRUST -->
+<main class="view" id="v-quality" hidden role="tabpanel">
+  <div class="explain">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
+    <div><b>You don't have to trust us. You can check us.</b> We collect the same fares three independent ways. When the three disagree we say so, rather than quietly averaging them.</div>
+  </div>
+
+  <div class="stats" style="margin-bottom:var(--sp)">
+    <div class="stat"><span class="k">Coverage this month</span><span class="v">98.2%</span><span class="n">of the fares we planned to collect</span></div>
+    <div class="stat"><span class="k">Filled in</span><span class="v">1.4%</span><span class="n">estimated, and labelled as such</span></div>
+    <div class="stat"><span class="k">Independent sources</span><span class="v">3</span><span class="n">two of them cannot be blocked</span></div>
+    <div class="stat"><span class="k">Figures revised</span><span class="v">0</span><span class="n">since first publication</span></div>
+  </div>
+
+  <div class="grid g2" style="grid-template-columns:1.28fr 1fr">
+    <section class="card">
+      <div class="finding">Where we got data, and where we missed</div>
+      <p class="sub">One square is one day, for one group of routes. Only shortfalls are coloured, and they are published rather than hidden.</p>
+      <div class="chart" id="chCover" style="margin-top:11px"><div class="tip"></div></div>
+      <div class="legend" style="margin-top:11px">
+        <span class="lg"><i class="sq" style="background:var(--raised)"></i>Collected as planned</span>
+        <span class="lg"><i class="sq" style="background:var(--q6)"></i>Slight shortfall</span>
+        <span class="lg"><i class="sq" style="background:var(--s1)"></i>Under 93%, flagged</span>
+      </div>
+    </section>
+
+    <section class="card" id="cardLanes">
+      <div class="finding">Three independent ways in. Two cannot be blocked</div>
+      <p class="sub">If a website blocks us, the index survives on the other two.</p>
+      <div id="slos" style="margin-top:11px"></div>
+      <div class="note">
+        <b>Why two are safe.</b> Indian law (<span class="gl" data-t="rule135" tabindex="0" role="button">Rule 135(2)</span>)
+        already requires every airline to publish its fares. We read what must legally be public. The second route
+        in is a paid, licensed data feed. Only the third reads travel websites, and if it degrades, that shows up
+        as a lower coverage number, not a wrong index.
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<div id="glossPop" role="tooltip"></div>
+
+<!-- ============================================================ STORY BAR -->
+<div id="storyBar" role="region" aria-label="Guided walkthrough">
+  <div class="story-in">
+    <span class="story-step" id="storyStep">Step 1 of 6</span>
+    <div class="story-txt" id="storyTxt"></div>
+    <div class="story-btns">
+      <span class="pips" id="storyPips" aria-hidden="true"></span>
+      <button class="btn sm" id="storyBack">Back</button>
+      <button class="btn primary sm" id="storyNext">Next</button>
+      <button class="btn sm" id="storyExit" aria-label="Exit walkthrough">Exit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ==================================================================== UTIL */
+function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;var t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function el(t,a){var e=document.createElementNS("http://www.w3.org/2000/svg",t);for(var k in a)e.setAttribute(k,a[k]);return e}
+function inr(v){return"₹"+Math.round(v).toLocaleString("en-IN")}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function $(s){return document.querySelector(s)}
+function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/* ==================================================================== DATA */
+var R=rng(26056);
+var IDX=(function(){
+  var out=[],lvl=100,i;
+  for(i=0;i<32;i++){
+    var m=i%12,y=2024+Math.floor(i/12);
+    var seas=3.1*Math.sin((m-3)/12*Math.PI*2)+(m===9||m===10?2.4:0);
+    var noise=(R()-0.5)*1.7;
+    lvl+=0.42+noise*0.35;
+    out.push({label:MON[m]+" "+String(y).slice(2),raw:lvl+seas+noise,sa:lvl,lo:lvl-1.35,hi:lvl+1.35});
+  }
+  var k=118.7-out[31].raw;
+  out.forEach(function(d){d.raw+=k;d.sa+=k;d.lo+=k;d.hi+=k});
+  return out;
+})();
+
+var AP={DEL:[77.10,28.56],BOM:[72.87,19.09],BLR:[77.71,13.20],MAA:[80.17,12.99],
+CCU:[88.45,22.65],HYD:[78.43,17.24],COK:[76.39,10.15],AMD:[72.63,23.07],
+PNQ:[73.92,18.58],GOI:[73.86,15.38],JAI:[75.81,26.82],LKO:[80.89,26.76],
+GAU:[91.59,26.11],IXC:[76.79,30.67],TRV:[76.92,8.48],PAT:[85.09,25.59]};
+
+var ROUTES=[["DEL","BOM",8.9],["DEL","BLR",6.4],["BOM","BLR",5.1],["DEL","CCU",4.6],
+["DEL","HYD",3.9],["BOM","MAA",3.2],["DEL","MAA",3.0],["BLR","CCU",2.6],
+["DEL","PNQ",2.4],["BOM","CCU",2.3],["DEL","GOI",2.1],["BLR","HYD",1.9],
+["DEL","AMD",1.8],["BOM","COK",1.6],["DEL","LKO",1.5],["DEL","JAI",1.2],
+["DEL","GAU",1.1],["BLR","COK",0.9]].map(function(r){
+  return {o:r[0],d:r[1],w:r[2],yoy:R()*17-6,idx:100+R()*32,seed:(r[0]+r[1]).length*97+Math.round(r[2]*10)};
+});
+
+var LEADS=[1,3,7,14,21,30,45,60];
+function surfaceFor(rt){
+  var r=rng(rt.seed*31+7),base=3150+r()*1500,g=[],i,j;
+  for(i=0;i<LEADS.length;i++){
+    var row=[],lf=1+1.72*Math.exp(-LEADS[i]/10.5);
+    for(j=0;j<10;j++)row.push(base*lf*(1+(j%7===5||j%7===6?0.13:0)+(j===8?0.09:0))*(0.9+r()*0.22));
+    g.push(row);
+  }
+  return g;
+}
+function methodSeries(win){
+  var r=rng(4242),naive=[],geks=[],i,drift=0;
+  var eff=0.016+Math.exp(-(win-1)/5.2);
+  for(i=0;i<30;i++){
+    drift+=0.42+(r()-0.5)*0.30;
+    naive.push(100+drift+(r()-0.5)*0.55);
+    geks.push(100+drift*eff+(r()-0.5)*0.55);
+  }
+  return {naive:naive,geks:geks};
+}
+
+/* ==================================================================== CHARTS */
+function mkSvg(host,w,h){
+  $$("svg").filter(function(s){return s.parentElement===host}).forEach(function(s){s.remove()});
+  var s=el("svg",{viewBox:"0 0 "+w+" "+h,role:"presentation"});
+  s.style.width="100%";s.style.height=h+"px";host.appendChild(s);return s;
+}
+function lineChart(host,opt){
+  var W=Math.max(320,host.clientWidth||900),H=opt.h||250,P={t:14,r:opt.pr||64,b:30,l:opt.pl||48};
+  var svg=mkSvg(host,W,H);svg.setAttribute("preserveAspectRatio","none");
+  var tip=host.querySelector(".tip"),xs=opt.labels.length;
+  var all=[];opt.series.forEach(function(s){all=all.concat(s.v)});
+  if(opt.band)all=all.concat(opt.band.lo,opt.band.hi);
+  var mn=opt.min!=null?opt.min:Math.min.apply(null,all),mx=opt.max!=null?opt.max:Math.max.apply(null,all);
+  var pd=(mx-mn)*0.15||1;mn-=pd;mx+=pd;
+  var X=function(i){return P.l+i*(W-P.l-P.r)/(xs-1)},
+      Y=function(v){return P.t+(1-(v-mn)/(mx-mn))*(H-P.t-P.b)};
+  var i;
+  for(i=0;i<=4;i++){
+    var v=mn+(mx-mn)*i/4,y=Y(v);
+    svg.appendChild(el("line",{x1:P.l,x2:W-P.r,y1:y,y2:y,stroke:css("--grid"),"stroke-width":1}));
+    var t=el("text",{x:P.l-8,y:y+4,"text-anchor":"end",fill:css("--muted"),"font-size":11,"font-family":css("--fm")});
+    t.textContent=opt.ytick?opt.ytick(v):v.toFixed(opt.dec==null?0:opt.dec);svg.appendChild(t);
+  }
+  var step=Math.max(1,Math.round(xs/7));
+  for(i=0;i<xs;i+=step){
+    var t2=el("text",{x:X(i),y:H-9,"text-anchor":"middle",fill:css("--muted"),"font-size":11,"font-family":css("--fm")});
+    t2.textContent=opt.labels[i];svg.appendChild(t2);
+  }
+  if(opt.band){
+    svg.appendChild(el("path",{d:"M"+opt.band.hi.map(function(v,j){return X(j)+","+Y(v)}).join("L")+
+      "L"+opt.band.lo.map(function(v,j){return X(j)+","+Y(v)}).reverse().join("L")+"Z",
+      fill:css("--band"),stroke:"none"}));
+  }
+  opt.series.forEach(function(s){
+    var a={d:"M"+s.v.map(function(v,j){return X(j)+","+Y(v)}).join("L"),fill:"none",stroke:s.c,
+      "stroke-width":2.5,"stroke-linejoin":"round","stroke-linecap":"round"};
+    if(s.dash)a["stroke-dasharray"]=s.dash;                      /* not colour alone */
+    svg.appendChild(el("path",a));
+    var lx=X(xs-1),ly=Y(s.v[xs-1]);
+    svg.appendChild(el("circle",{cx:lx,cy:ly,r:5,fill:s.c,stroke:css("--surface"),"stroke-width":2.5}));
+    if(opt.directLabel!==false){
+      var lb=el("text",{x:lx+10,y:ly+4,fill:s.c,"font-size":12.5,"font-weight":600,"font-family":css("--fm")});
+      lb.textContent=s.n;svg.appendChild(lb);
+    }
+  });
+  var cross=el("line",{y1:P.t,y2:H-P.b,stroke:css("--axis"),"stroke-width":1.5,opacity:0});
+  svg.appendChild(cross);
+  var dots=opt.series.map(function(s){
+    var c=el("circle",{r:5,fill:s.c,stroke:css("--surface"),"stroke-width":2.5,opacity:0});
+    svg.appendChild(c);return c;
+  });
+  var hit=el("rect",{x:P.l,y:0,width:W-P.l-P.r,height:H,fill:"transparent"});
+  svg.appendChild(hit);
+  function move(ev){
+    var b=svg.getBoundingClientRect(),px=(ev.clientX-b.left)/b.width*W;
+    var i=clamp(Math.round((px-P.l)/((W-P.l-P.r)/(xs-1))),0,xs-1);
+    cross.setAttribute("x1",X(i));cross.setAttribute("x2",X(i));cross.setAttribute("opacity",1);
+    var html='<div class="th">'+opt.labels[i]+"</div>";
+    opt.series.forEach(function(s,k){
+      dots[k].setAttribute("cx",X(i));dots[k].setAttribute("cy",Y(s.v[i]));dots[k].setAttribute("opacity",1);
+      html+='<div class="tr"><span class="nm"><i style="background:'+s.c+'"></i>'+(s.full||s.n)+
+        '</span><span class="vv">'+(opt.fmt?opt.fmt(s.v[i]):s.v[i].toFixed(1))+"</span></div>";
+    });
+    tip.innerHTML=html;tip.classList.add("on");
+    tip.style.left=clamp(X(i)/W*host.getBoundingClientRect().width+14,0,host.getBoundingClientRect().width-165)+"px";
+    tip.style.top="4px";
+  }
+  hit.addEventListener("mousemove",move);
+  hit.addEventListener("mouseleave",function(){
+    tip.classList.remove("on");cross.setAttribute("opacity",0);
+    dots.forEach(function(d){d.setAttribute("opacity",0)});
+  });
+}
+function heatmap(host,opt){
+  var rows=opt.rows.length,cols=opt.cols.length,cw=opt.cw||46,ch=opt.ch||30,gap=2;
+  var P={l:opt.pl||44,t:opt.pt||22},W=P.l+cols*(cw+gap),H=P.t+rows*(ch+gap)+4;
+  var svg=mkSvg(host,W,H);svg.setAttribute("preserveAspectRatio","xMinYMin meet");svg.style.height="auto";
+  var tip=host.querySelector(".tip"),flat=[];
+  opt.data.forEach(function(r){flat=flat.concat(r)});
+  var mn=Math.min.apply(null,flat),mx=Math.max.apply(null,flat);
+  var ramp=["--q1","--q2","--q3","--q4","--q5","--q6","--q7","--q8","--q9"].map(css);
+  opt.cols.forEach(function(c,j){
+    var t=el("text",{x:P.l+j*(cw+gap)+cw/2,y:P.t-8,"text-anchor":"middle",fill:css("--muted"),"font-size":11,"font-family":css("--fm")});
+    t.textContent=c;svg.appendChild(t);
+  });
+  opt.rows.forEach(function(r,i){
+    var t=el("text",{x:P.l-8,y:P.t+i*(ch+gap)+ch/2+4,"text-anchor":"end",fill:css("--muted"),"font-size":11,"font-family":css("--fm")});
+    t.textContent=r;svg.appendChild(t);
+  });
+  opt.data.forEach(function(row,i){row.forEach(function(v,j){
+    var k=clamp(Math.floor((v-mn)/((mx-mn)||1)*ramp.length),0,ramp.length-1);
+    if(opt.invert)k=ramp.length-1-k;
+    /* a caller can decide a cell's colour outright, which lets a grid stay
+       quiet where the value is unremarkable and colour only the exceptions */
+    var fillCol=opt.cellColor?opt.cellColor(v):ramp[k];
+    var x=P.l+j*(cw+gap),y=P.t+i*(ch+gap);
+    var dim=opt.only&&!(opt.only[0]===i&&opt.only[1]===j);
+    var rc=el("rect",{x:x,y:y,width:cw,height:ch,rx:3,fill:fillCol,opacity:dim?0.13:1});
+    if(opt.only&&!dim)rc.setAttribute("stroke",css("--s2")),rc.setAttribute("stroke-width",3);
+    rc.style.cursor="pointer";svg.appendChild(rc);
+    if(opt.label!==false){
+      var t=el("text",{x:x+cw/2,y:y+ch/2+4,"text-anchor":"middle","font-size":11.5,"font-family":css("--fm"),
+        "font-weight":500,fill:k>=5?"#fff":css("--ink"),"pointer-events":"none",opacity:dim?0.16:1});
+      t.textContent=opt.cell?opt.cell(v):Math.round(v);svg.appendChild(t);
+    }
+    rc.addEventListener("mouseenter",function(){
+      tip.innerHTML='<div class="th">'+opt.rows[i]+" · "+opt.cols[j]+"</div>"+
+        '<div class="tr"><span class="nm">'+(opt.vlabel||"Value")+'</span><span class="vv">'+
+        (opt.tipfmt?opt.tipfmt(v):Math.round(v))+"</span></div>";
+      tip.classList.add("on");
+      var hb=host.getBoundingClientRect(),sb=svg.getBoundingClientRect();
+      tip.style.left=clamp((x+cw/2)/W*sb.width-78,0,hb.width-165)+"px";
+      tip.style.top=Math.max(0,(y/H)*sb.height-56)+"px";
+    });
+    rc.addEventListener("mouseleave",function(){tip.classList.remove("on")});
+  })});
+}
+function bars(host,opt){
+  var n=opt.items.length,W=Math.max(360,host.clientWidth||900),rowH=24,H=n*rowH+20,P={l:104,r:62};
+  var svg=mkSvg(host,W,H);svg.setAttribute("preserveAspectRatio","none");
+  var tip=host.querySelector(".tip");
+  var mx=Math.max.apply(null,opt.items.map(function(d){return Math.abs(d.v)}));
+  var mid=P.l+(W-P.l-P.r)*0.5;
+  svg.appendChild(el("line",{x1:mid,x2:mid,y1:4,y2:H-14,stroke:css("--axis"),"stroke-width":1.5}));
+  opt.items.forEach(function(d,i){
+    var y=7+i*rowH,w=Math.max(3,Math.abs(d.v)/mx*(W-P.l-P.r)*0.5),pos=d.v>=0;
+    var x=pos?mid:mid-w,c=pos?css("--s1"):css("--s2");
+    svg.appendChild(el("rect",{x:x,y:y,width:w,height:rowH-9,fill:c,rx:3}));
+    var nm=el("text",{x:P.l-12,y:y+rowH/2-1,"text-anchor":"end",fill:css("--ink-2"),"font-size":12.5,"font-family":css("--fm")});
+    nm.textContent=d.n;svg.appendChild(nm);
+    var vx=pos?x+w+8:x-8,va=pos?"start":"end",vf=css("--ink-2");
+    if(!pos&&vx<P.l+6){vx=x+9;va="start";vf="#fff"}
+    var vl=el("text",{x:vx,y:y+rowH/2-1,"text-anchor":va,fill:vf,"font-size":12,"font-family":css("--fm"),"font-weight":600});
+    vl.textContent=(pos?"+":"−")+Math.abs(d.v).toFixed(3);svg.appendChild(vl);
+    var hit=el("rect",{x:0,y:y-4,width:W,height:rowH,fill:"transparent"});
+    hit.style.cursor="pointer";svg.appendChild(hit);
+    hit.addEventListener("mouseenter",function(){
+      tip.innerHTML='<div class="th">'+d.n+"</div>"+
+        '<div class="tr"><span class="nm"><i style="background:'+c+'"></i>Effect on index</span><span class="vv">'+
+        (pos?"+":"−")+Math.abs(d.v).toFixed(3)+" pts</span></div>"+
+        '<div class="tr"><span class="nm">Share of flyers</span><span class="vv">'+d.w.toFixed(1)+"%</span></div>";
+      tip.classList.add("on");
+      var hb=host.getBoundingClientRect();
+      tip.style.left=clamp(mid/W*hb.width+12,0,hb.width-180)+"px";
+      tip.style.top=clamp(y/H*hb.height-8,0,hb.height-76)+"px";
+    });
+    hit.addEventListener("mouseleave",function(){tip.classList.remove("on")});
+  });
+}
+
+/* ==================================================================== MAP */
+var LON=[68.0,97.9],LAT=[6.4,37.6];
+/* India boundary, simplified from DataMeet india-osm (Indian community OSM extract),
+   which carries India's official extent: full J&K to 37.08N and Arunachal to 97.4E.
+   430-point mainland + Andaman & Nicobar + Lakshadweep, inlined so it works offline. */
+var INDIA=[[77.924,35.497],[78.856,35.974],[79.343,35.988],[79.572,35.897],[79.704,35.639],[79.999,35.602],[80.055,35.423],[80.205,35.575],[80.412,35.477],[80.074,34.706],[79.787,34.627],[79.797,34.482],[79.509,34.454],[79.607,34.238],[79.403,34.002],[78.887,33.973],[79.090,33.637],[78.907,33.620],[78.940,33.380],[79.107,33.200],[79.408,33.189],[79.331,33.001],[79.548,32.677],[78.968,32.336],[78.779,32.479],[78.740,32.696],[78.393,32.535],[78.779,31.994],[78.778,31.312],[79.099,31.455],[79.427,31.023],[79.866,30.972],[80.239,30.762],[80.218,30.580],[81.031,30.247],[80.366,29.748],[80.408,29.597],[80.242,29.443],[80.298,29.205],[80.145,29.105],[80.076,28.823],[80.518,28.551],[80.568,28.688],[81.211,28.361],[81.318,28.134],[81.447,28.161],[81.885,27.857],[82.070,27.924],[82.449,27.679],[82.708,27.723],[82.736,27.502],[83.188,27.454],[83.317,27.330],[83.389,27.480],[83.857,27.351],[84.146,27.519],[84.622,27.336],[84.643,27.046],[85.191,26.870],[85.212,26.758],[85.624,26.874],[85.852,26.568],[86.027,26.667],[86.333,26.619],[86.731,26.422],[87.071,26.586],[87.091,26.450],[87.341,26.348],[87.888,26.487],[88.007,26.361],[88.190,26.750],[87.987,27.120],[88.197,27.791],[88.118,27.918],[88.633,28.123],[88.888,27.856],[88.763,27.566],[88.921,27.327],[88.746,27.142],[89.131,26.812],[89.371,26.860],[89.863,26.703],[90.355,26.901],[90.700,26.769],[91.695,26.809],[91.894,26.920],[92.057,26.850],[92.038,27.258],[92.123,27.287],[92.018,27.480],[91.652,27.484],[91.566,27.827],[91.923,27.718],[92.241,27.886],[92.456,27.793],[92.730,27.978],[92.677,28.151],[92.922,28.201],[93.308,28.593],[94.020,28.793],[94.366,29.026],[94.293,29.152],[94.626,29.296],[95.263,29.068],[96.054,29.382],[96.299,29.191],[96.199,29.023],[96.367,29.109],[96.589,28.818],[96.409,28.508],[96.496,28.430],[96.552,28.583],[96.745,28.571],[96.924,28.353],[97.360,28.205],[97.307,28.070],[97.396,28.012],[97.366,27.877],[96.898,27.611],[97.148,27.093],[96.611,27.367],[96.102,27.224],[95.732,26.889],[95.152,26.614],[95.063,26.452],[95.185,26.069],[95.029,25.935],[95.041,25.743],[94.636,25.396],[94.577,25.216],[94.738,25.135],[94.737,25.001],[94.156,23.847],[93.757,24.006],[93.503,23.948],[93.340,24.105],[93.387,23.143],[93.293,23.006],[93.126,23.041],[93.202,22.262],[92.901,21.954],[92.719,22.160],[92.601,21.982],[92.273,23.716],[92.031,23.645],[91.950,23.732],[91.964,23.497],[91.769,23.274],[91.818,23.087],[91.614,22.943],[91.421,23.264],[91.348,23.103],[91.159,23.641],[91.373,24.102],[91.612,24.102],[91.758,24.239],[91.892,24.150],[91.924,24.335],[92.135,24.414],[92.248,24.896],[92.488,24.948],[92.041,25.188],[90.438,25.147],[89.843,25.293],[89.866,25.936],[89.679,26.238],[89.577,25.969],[89.349,26.010],[89.155,26.138],[89.093,26.394],[88.905,26.409],[89.051,26.242],[88.666,26.263],[88.746,26.347],[88.409,26.638],[88.332,26.482],[88.524,26.360],[88.177,26.148],[88.115,25.798],[88.269,25.808],[88.540,25.509],[88.810,25.523],[89.008,25.265],[88.923,25.164],[88.439,25.208],[88.343,24.870],[88.137,24.938],[88.008,24.669],[88.126,24.509],[88.737,24.251],[88.737,23.919],[88.575,23.863],[88.556,23.649],[88.793,23.494],[88.725,23.248],[88.996,23.213],[88.845,23.009],[89.068,22.186],[88.954,22.225],[88.721,22.005],[88.586,22.084],[88.475,21.895],[88.465,22.046],[88.267,21.730],[88.164,21.880],[88.207,22.161],[88.049,22.220],[88.195,22.104],[87.838,21.723],[87.117,21.520],[86.889,21.321],[86.776,21.142],[86.964,20.794],[86.753,20.613],[87.054,20.718],[86.739,20.524],[86.790,20.345],[86.376,19.984],[86.221,20.034],[86.341,19.970],[86.238,19.905],[85.174,19.468],[84.718,19.098],[84.124,18.309],[83.429,17.938],[83.213,17.590],[82.373,17.152],[82.245,16.941],[82.307,16.719],[82.033,16.693],[82.261,16.640],[82.200,16.534],[82.315,16.571],[81.717,16.307],[81.561,16.401],[81.263,16.327],[81.394,16.343],[80.828,15.745],[80.773,15.889],[80.496,15.941],[80.539,15.850],[80.319,15.759],[80.030,15.317],[80.085,15.195],[80.000,15.220],[80.084,15.191],[80.049,14.812],[80.197,14.583],[80.133,14.107],[80.357,13.312],[80.155,12.465],[79.761,11.624],[79.883,10.305],[79.630,10.363],[79.552,10.313],[79.734,10.276],[79.539,10.348],[79.274,10.241],[79.267,10.038],[78.898,9.490],[79.191,9.282],[78.378,9.087],[78.187,8.924],[78.229,8.748],[78.068,8.373],[77.551,8.077],[76.987,8.376],[76.547,8.902],[76.664,9.000],[76.536,8.936],[76.238,9.966],[76.406,9.672],[76.390,9.850],[76.224,9.976],[75.715,11.393],[75.200,12.007],[74.824,12.844],[74.691,13.349],[74.737,13.691],[74.651,13.663],[74.291,14.720],[74.110,14.754],[73.783,15.409],[73.958,15.381],[73.787,15.464],[73.999,15.510],[73.768,15.491],[73.740,15.723],[73.455,16.054],[73.311,16.541],[73.322,17.035],[72.932,18.220],[73.094,18.154],[73.119,18.331],[72.918,18.348],[72.856,18.694],[72.940,18.830],[73.037,18.678],[73.072,18.809],[72.906,18.885],[73.042,18.977],[73.042,19.302],[72.775,19.350],[72.747,19.468],[72.883,19.525],[72.719,19.538],[72.788,19.596],[72.651,19.841],[72.707,19.967],[72.770,19.905],[72.741,20.245],[72.920,20.524],[72.853,20.733],[72.948,20.757],[72.724,21.036],[72.883,21.054],[72.705,21.077],[72.806,21.220],[72.614,21.091],[72.629,21.382],[72.819,21.424],[72.644,21.440],[72.747,21.569],[72.610,21.584],[72.814,21.654],[72.525,21.701],[72.725,21.954],[72.506,21.943],[72.586,22.203],[72.884,22.228],[72.493,22.372],[72.215,22.012],[72.101,22.103],[72.198,21.959],[72.069,22.056],[72.156,21.968],[72.061,21.941],[72.220,21.945],[72.261,21.748],[72.126,21.820],[72.306,21.628],[72.070,21.331],[72.111,21.199],[70.828,20.690],[70.159,21.055],[68.936,22.312],[69.068,22.480],[69.064,22.389],[69.195,22.421],[69.190,22.244],[70.147,22.522],[70.728,23.195],[70.832,23.095],[71.109,23.223],[71.716,23.138],[71.464,23.280],[71.212,23.206],[71.394,23.351],[71.243,23.324],[71.362,23.430],[71.235,23.440],[71.313,23.574],[71.047,23.633],[71.065,23.870],[71.271,23.998],[71.117,24.122],[71.157,24.219],[70.571,24.251],[71.121,24.401],[70.977,24.596],[71.099,24.688],[70.666,25.397],[70.661,25.703],[70.270,25.714],[70.101,25.939],[70.175,26.552],[69.511,26.744],[69.587,27.181],[70.373,28.011],[70.589,28.009],[70.872,27.703],[71.899,27.960],[72.389,28.767],[72.947,29.027],[73.399,29.945],[73.974,30.198],[73.933,30.463],[74.700,31.077],[74.513,31.133],[74.656,31.425],[74.473,31.721],[74.599,31.885],[75.380,32.232],[75.082,32.480],[74.681,32.493],[74.705,32.842],[74.347,32.776],[73.636,33.100],[73.594,33.888],[73.390,34.375],[73.448,34.563],[73.641,34.567],[74.126,35.125],[73.727,35.221],[73.807,35.504],[73.281,35.614],[73.092,35.860],[72.570,35.849],[72.553,36.231],[72.981,36.458],[73.174,36.727],[73.883,36.703],[73.658,36.911],[74.047,36.826],[74.668,37.082],[74.908,36.929],[75.144,37.027],[75.402,36.954],[75.455,36.722],[75.724,36.751],[75.998,36.484],[76.644,36.184],[76.802,36.048],[76.723,35.953],[76.812,35.845],[77.358,35.718],[77.487,35.532],[77.323,35.537],[77.381,35.473],[77.924,35.497]];
+var INDIA_ISLES=[[[92.812,12.994],[92.840,13.402],[93.027,13.579],[93.069,13.397],[92.959,13.339],[93.066,13.272],[93.034,13.081],[92.911,13.074],[92.854,12.925],[92.974,12.531],[92.824,12.431],[92.899,12.325],[92.675,11.821],[92.785,11.936],[92.666,11.654],[92.757,11.665],[92.711,11.478],[92.515,11.850],[92.562,11.946],[92.611,11.871],[92.663,12.217],[92.771,12.231],[92.679,12.589],[92.782,12.634],[92.720,12.806],[92.812,12.994]],[[93.674,7.005],[93.657,7.093],[93.675,7.114],[93.656,7.118],[93.672,7.174],[93.758,7.212],[93.802,7.202],[93.820,7.235],[93.869,7.216],[93.915,7.025],[93.947,7.000],[93.913,7.000],[93.945,6.955],[93.896,6.903],[93.912,6.835],[93.895,6.804],[93.852,6.815],[93.835,6.756],[93.808,6.763],[93.816,6.812],[93.785,6.835],[93.787,6.883],[93.743,6.921],[93.727,6.991],[93.688,7.018],[93.674,7.005]],[[92.392,10.560],[92.419,10.615],[92.402,10.657],[92.381,10.667],[92.373,10.782],[92.384,10.794],[92.389,10.783],[92.410,10.787],[92.424,10.825],[92.457,10.840],[92.454,10.866],[92.520,10.897],[92.558,10.863],[92.564,10.804],[92.588,10.786],[92.597,10.679],[92.579,10.675],[92.583,10.657],[92.540,10.612],[92.545,10.592],[92.568,10.577],[92.531,10.518],[92.505,10.511],[92.434,10.548],[92.385,10.531],[92.392,10.560]],[[93.469,7.882],[93.462,7.873],[93.455,7.875],[93.442,7.899],[93.413,7.909],[93.380,7.883],[93.351,7.894],[93.345,7.930],[93.337,7.936],[93.331,7.923],[93.322,7.928],[93.311,7.958],[93.324,7.974],[93.323,7.994],[93.330,8.006],[93.349,8.016],[93.359,8.009],[93.380,8.025],[93.397,8.019],[93.405,7.983],[93.395,7.971],[93.414,7.960],[93.434,7.965],[93.463,7.935],[93.474,7.893],[93.469,7.882]],[[93.634,7.344],[93.634,7.372],[93.650,7.368],[93.665,7.379],[93.671,7.375],[93.665,7.373],[93.669,7.362],[93.682,7.385],[93.705,7.392],[93.711,7.420],[93.705,7.442],[93.712,7.444],[93.722,7.401],[93.754,7.376],[93.756,7.359],[93.748,7.356],[93.723,7.308],[93.707,7.305],[93.678,7.284],[93.669,7.260],[93.648,7.244],[93.630,7.264],[93.635,7.288],[93.622,7.309],[93.637,7.321],[93.634,7.344]],[[92.773,9.126],[92.769,9.128],[92.764,9.125],[92.731,9.123],[92.720,9.144],[92.718,9.159],[92.721,9.172],[92.721,9.213],[92.729,9.219],[92.736,9.215],[92.743,9.216],[92.747,9.212],[92.767,9.216],[92.776,9.233],[92.773,9.239],[92.779,9.243],[92.776,9.256],[92.817,9.216],[92.831,9.163],[92.828,9.152],[92.829,9.139],[92.817,9.135],[92.810,9.124],[92.803,9.120],[92.788,9.118],[92.773,9.126]],[[93.481,8.086],[93.491,8.089],[93.469,8.102],[93.455,8.175],[93.494,8.199],[93.494,8.221],[93.539,8.228],[93.544,8.196],[93.513,8.175],[93.497,8.143],[93.546,8.087],[93.550,8.036],[93.529,8.051],[93.526,8.034],[93.504,8.024],[93.501,8.000],[93.486,8.015],[93.486,8.044],[93.509,8.037],[93.511,8.067],[93.518,8.045],[93.538,8.079],[93.516,8.084],[93.490,8.050],[93.481,8.086]],[[92.625,11.419],[92.625,11.442],[92.611,11.459],[92.621,11.497],[92.636,11.517],[92.645,11.511],[92.643,11.497],[92.669,11.489],[92.685,11.437],[92.684,11.427],[92.672,11.427],[92.672,11.416],[92.648,11.406],[92.693,11.387],[92.690,11.370],[92.668,11.362],[92.665,11.353],[92.651,11.357],[92.638,11.346],[92.593,11.350],[92.581,11.369],[92.592,11.380],[92.587,11.400],[92.618,11.402],[92.625,11.419]],[[92.691,12.835],[92.672,12.837],[92.678,12.832],[92.675,12.822],[92.685,12.830],[92.689,12.817],[92.675,12.807],[92.668,12.783],[92.660,12.795],[92.666,12.808],[92.649,12.861],[92.665,12.882],[92.682,12.947],[92.671,12.950],[92.669,12.962],[92.685,12.988],[92.695,12.993],[92.720,12.979],[92.715,12.943],[92.721,12.947],[92.723,12.903],[92.720,12.882],[92.712,12.883],[92.719,12.876],[92.715,12.864],[92.691,12.835]],[[92.983,11.946],[92.968,11.957],[92.960,11.981],[92.934,11.985],[92.925,11.998],[92.932,12.006],[92.950,12.012],[92.962,12.031],[92.965,12.049],[92.970,12.032],[92.974,12.042],[92.982,12.042],[93.001,12.031],[93.009,12.019],[93.007,12.001],[93.028,11.952],[93.037,11.948],[93.054,11.904],[93.048,11.888],[93.037,11.882],[93.026,11.889],[93.017,11.912],[92.995,11.941],[93.002,11.949],[92.990,11.951],[92.983,11.946]],[[93.205,8.213],[93.200,8.195],[93.164,8.201],[93.119,8.224],[93.113,8.228],[93.116,8.232],[93.103,8.242],[93.086,8.273],[93.084,8.283],[93.086,8.303],[93.094,8.321],[93.095,8.338],[93.102,8.346],[93.107,8.349],[93.114,8.346],[93.127,8.355],[93.132,8.347],[93.142,8.347],[93.138,8.321],[93.133,8.318],[93.133,8.297],[93.128,8.280],[93.130,8.271],[93.150,8.246],[93.193,8.225],[93.205,8.213]],[[93.085,12.089],[93.080,12.089],[93.078,12.084],[93.071,12.087],[93.066,12.098],[93.051,12.113],[93.046,12.128],[93.041,12.126],[93.037,12.134],[93.056,12.191],[93.067,12.211],[93.076,12.210],[93.080,12.198],[93.088,12.192],[93.086,12.187],[93.090,12.177],[93.085,12.156],[93.086,12.151],[93.094,12.148],[93.095,12.142],[93.088,12.129],[93.088,12.123],[93.093,12.122],[93.090,12.115],[93.093,12.112],[93.085,12.089]],[[92.263,11.518],[92.252,11.525],[92.223,11.529],[92.223,11.525],[92.232,11.517],[92.246,11.516],[92.241,11.513],[92.235,11.515],[92.225,11.519],[92.205,11.535],[92.205,11.538],[92.212,11.535],[92.207,11.550],[92.215,11.572],[92.207,11.586],[92.215,11.589],[92.216,11.594],[92.230,11.587],[92.234,11.593],[92.260,11.590],[92.256,11.592],[92.272,11.584],[92.269,11.561],[92.275,11.537],[92.270,11.523],[92.263,11.518]],[[93.577,7.934],[93.577,7.929],[93.566,7.935],[93.508,7.986],[93.507,7.997],[93.513,7.999],[93.514,7.994],[93.523,7.992],[93.528,8.005],[93.532,8.006],[93.528,8.019],[93.531,8.025],[93.536,8.021],[93.535,8.013],[93.538,8.017],[93.542,8.015],[93.541,8.006],[93.546,8.002],[93.552,8.002],[93.550,8.021],[93.546,8.021],[93.545,8.028],[93.563,8.025],[93.582,7.992],[93.581,7.939],[93.577,7.934]]];
+/* World silhouette, Natural Earth 110m, simplified. India is deliberately
+   excluded here and drawn from its own official boundary above. */
+var WORLD=[[[33.90,-0.95],[39.20,-4.68],[39.52,-10.90],[34.56,-11.52],[33.74,-9.42],[29.62,-6.52],[30.42,-1.13],[33.90,-0.95]],[[-8.67,27.66],[-8.69,25.88],[-11.97,25.93],[-12.93,21.33],[-17.06,21.00],[-14.75,21.50],[-11.39,26.88],[-8.67,27.66]],[[-122.84,49.00],[-127.44,50.83],[-130.51,54.29],[-130.01,55.92],[-135.48,59.79],[-137.45,58.91],[-141.00,60.31],[-140.99,69.71],[-136.50,68.90],[-128.14,70.48],[-115.25,68.91],[-113.90,68.40],[-115.30,67.90],[-113.50,67.69],[-108.88,67.38],[-106.15,68.80],[-101.45,67.65],[-97.67,68.58],[-96.13,67.29],[-94.23,69.07],[-96.47,70.09],[-95.21,71.92],[-92.88,71.32],[-90.55,68.47],[-88.02,68.62],[-87.35,67.20],[-85.52,69.88],[-82.62,69.66],[-81.28,69.16],[-81.39,67.11],[-85.77,66.56],[-90.70,63.61],[-94.24,60.90],[-94.68,58.95],[-92.30,57.09],[-82.27,55.15],[-79.91,51.21],[-78.60,52.56],[-79.83,54.67],[-76.54,56.53],[-78.52,58.80],[-77.34,59.85],[-78.11,62.32],[-73.84,62.44],[-69.59,61.06],[-69.29,58.96],[-67.65,58.21],[-64.58,60.34],[-61.80,56.34],[-57.33,54.63],[-55.68,52.15],[-60.03,50.24],[-66.40,50.23],[-71.10,46.82],[-65.06,49.23],[-64.47,46.24],[-61.52,45.88],[-60.52,47.01],[-59.80,45.92],[-65.36,43.55],[-66.16,44.47],[-64.43,45.29],[-67.14,45.14],[-69.24,47.45],[-71.51,45.01],[-74.87,45.00],[-82.44,41.68],[-82.55,45.35],[-88.38,48.30],[-94.82,49.39],[-122.84,49.00]],[[-79.78,72.80],[-80.83,73.69],[-76.25,72.83],[-79.78,72.80]],[[-88.15,74.39],[-97.12,76.75],[-79.83,74.92],[-88.15,74.39]],[[-55.60,51.32],[-56.80,49.81],[-53.48,49.25],[-53.07,46.66],[-54.24,47.75],[-59.27,47.60],[-55.60,51.32]],[[-83.88,65.11],[-80.10,63.73],[-87.22,63.54],[-85.88,65.74],[-83.88,65.11]],[[-78.77,72.35],[-68.79,70.53],[-66.97,69.19],[-68.81,68.72],[-61.85,66.86],[-63.92,65.00],[-68.02,66.26],[-64.67,63.39],[-68.78,63.75],[-66.17,61.93],[-68.88,62.33],[-74.83,64.68],[-78.56,64.57],[-73.96,65.45],[-73.31,68.07],[-78.96,70.17],[-88.68,70.41],[-90.21,72.24],[-85.83,73.80],[-85.77,72.53],[-82.32,73.75],[-80.75,72.06],[-78.77,72.35]],[[-94.50,74.13],[-90.51,73.86],[-95.41,72.06],[-96.02,73.44],[-94.50,74.13]],[[-122.85,76.12],[-116.20,77.65],[-117.11,76.53],[-122.85,76.12]],[[-121.54,74.45],[-115.51,73.48],[-123.09,70.90],[-125.93,71.87],[-123.94,73.68],[-124.92,74.29],[-121.54,74.45]],[[-107.82,75.85],[-105.70,75.48],[-112.22,74.42],[-113.87,74.72],[-111.79,75.16],[-117.71,75.22],[-115.40,76.48],[-107.82,75.85]],[[-106.52,73.08],[-101.09,69.58],[-113.31,68.54],[-117.34,69.96],[-112.42,70.37],[-119.40,71.56],[-115.19,73.31],[-109.92,72.96],[-108.19,71.65],[-108.40,73.09],[-106.52,73.08]],[[-100.44,72.71],[-101.54,73.36],[-97.38,73.76],[-98.05,72.99],[-96.54,72.56],[-98.36,71.27],[-102.50,72.51],[-100.44,72.71]],[[-98.50,76.72],[-98.16,75.00],[-102.50,75.56],[-98.50,76.72]],[[-96.02,80.60],[-92.41,81.26],[-85.81,79.34],[-92.88,78.34],[-96.02,80.60]],[[-91.59,81.89],[-79.31,83.13],[-61.85,82.63],[-76.91,79.32],[-75.39,78.53],[-80.56,76.18],[-89.49,76.47],[-88.26,77.90],[-84.98,77.54],[-87.96,78.37],[-85.09,79.35],[-86.93,80.25],[-81.85,80.46],[-91.59,81.89]],[[-122.84,49.00],[-94.82,49.39],[-88.38,48.30],[-82.55,45.35],[-82.69,41.68],[-74.87,45.00],[-71.51,45.01],[-69.24,47.45],[-66.96,44.81],[-70.12,43.68],[-69.97,41.64],[-75.53,39.50],[-75.94,37.22],[-76.35,39.15],[-76.99,38.24],[-75.73,35.55],[-81.34,31.44],[-80.38,25.21],[-83.71,29.94],[-86.40,30.40],[-89.59,30.16],[-89.41,29.16],[-94.69,29.48],[-97.14,27.83],[-97.53,25.84],[-100.96,29.38],[-103.94,29.27],[-106.51,31.75],[-117.13,32.54],[-120.62,34.61],[-124.40,40.31],[-124.69,48.18],[-122.59,47.10],[-122.84,49.00]],[[-140.99,69.71],[-141.00,60.31],[-137.45,58.91],[-135.48,59.79],[-130.01,55.92],[-130.54,54.80],[-134.08,58.12],[-139.87,59.54],[-147.11,60.88],[-151.72,59.16],[-150.62,61.28],[-158.43,55.99],[-164.94,54.57],[-158.68,57.02],[-157.04,58.92],[-161.97,58.67],[-162.52,59.99],[-165.35,60.51],[-165.73,62.07],[-160.77,63.77],[-160.78,64.79],[-168.11,65.67],[-161.68,66.12],[-166.20,68.88],[-156.58,71.36],[-140.99,69.71]],[[87.36,49.21],[79.97,44.92],[80.26,42.35],[74.21,43.30],[68.63,40.67],[64.90,43.73],[62.01,43.50],[58.50,45.59],[55.93,45.00],[55.97,41.31],[52.50,41.78],[50.31,44.61],[53.04,45.26],[53.04,46.85],[49.10,46.40],[46.47,48.39],[47.55,50.45],[48.58,49.87],[50.77,51.69],[61.34,50.80],[59.97,51.96],[61.44,54.01],[69.07,55.39],[73.43,53.49],[76.89,54.49],[80.04,50.86],[83.38,51.07],[87.36,49.21]],[[55.97,41.31],[55.93,45.00],[58.50,45.59],[62.01,43.50],[64.90,43.73],[68.26,40.66],[70.96,42.27],[70.42,41.52],[73.06,40.87],[67.70,39.58],[67.83,37.14],[58.63,42.75],[55.97,41.31]],[[141.00,-2.60],[147.65,-6.08],[147.19,-7.39],[150.69,-10.58],[144.74,-7.63],[141.03,-9.12],[141.00,-2.60]],[[151.30,-5.84],[148.32,-5.75],[152.14,-4.15],[151.30,-5.84]],[[141.00,-2.60],[141.03,-9.12],[137.61,-8.41],[138.67,-7.32],[137.93,-5.39],[132.98,-4.11],[131.99,-2.82],[133.70,-2.21],[130.52,-0.94],[133.99,-0.78],[135.46,-3.37],[137.44,-1.70],[141.00,-2.60]],[[117.88,4.14],[119.00,0.90],[117.81,0.78],[116.15,-4.01],[110.22,-2.93],[108.95,0.42],[109.66,2.01],[110.51,0.77],[113.81,1.22],[115.87,4.31],[117.88,4.14]],[[122.93,0.88],[125.24,1.42],[120.04,-0.52],[120.94,-1.41],[123.34,-0.62],[121.51,-1.90],[123.16,-5.34],[120.97,-2.63],[119.80,-5.67],[118.77,-2.80],[119.83,0.15],[120.89,1.31],[122.93,0.88]],[[108.49,-6.42],[115.71,-8.37],[105.37,-6.85],[106.05,-5.90],[108.49,-6.42]],[[104.37,-1.08],[106.11,-3.06],[105.82,-5.85],[102.58,-4.22],[95.29,5.48],[97.48,5.25],[104.37,-1.08]],[[-68.63,-52.64],[-65.05,-54.70],[-68.63,-54.87],[-68.63,-52.64]],[[-57.63,-30.22],[-58.50,-34.43],[-56.79,-36.90],[-59.23,-38.72],[-62.34,-38.83],[-62.75,-41.03],[-65.12,-41.06],[-63.46,-42.56],[-67.29,-45.55],[-65.64,-47.24],[-69.14,-50.73],[-68.15,-52.35],[-71.91,-52.01],[-73.42,-49.32],[-71.22,-44.78],[-72.15,-42.25],[-68.42,-24.52],[-66.27,-21.83],[-64.38,-22.80],[-62.85,-22.03],[-57.78,-25.16],[-58.62,-27.12],[-55.70,-27.39],[-54.13,-25.55],[-53.65,-26.92],[-57.63,-30.22]],[[-68.63,-52.64],[-68.63,-54.87],[-66.96,-54.90],[-68.15,-55.61],[-74.66,-52.84],[-71.11,-54.07],[-68.63,-52.64]],[[-69.59,-17.58],[-66.99,-22.99],[-70.54,-31.37],[-69.82,-34.19],[-72.15,-42.25],[-71.22,-44.78],[-73.42,-49.32],[-71.91,-52.01],[-68.57,-52.30],[-71.43,-53.86],[-74.95,-52.26],[-75.61,-48.67],[-74.13,-46.94],[-75.64,-46.65],[-72.72,-42.38],[-74.33,-43.22],[-73.59,-37.16],[-71.44,-32.42],[-69.59,-17.58]],[[29.34,-4.50],[30.74,-8.34],[28.73,-8.53],[28.37,-11.79],[29.70,-13.26],[27.16,-11.61],[22.16,-11.08],[21.73,-7.29],[17.47,-8.07],[16.33,-5.88],[12.18,-5.79],[16.01,-3.54],[19.47,5.03],[22.41,4.03],[25.65,5.26],[29.72,4.60],[31.17,2.20],[29.34,-4.50]],[[41.59,-1.68],[40.98,2.78],[44.96,5.00],[48.94,9.45],[48.95,11.41],[51.11,12.02],[48.59,5.34],[41.59,-1.68]],[[39.20,-4.68],[33.90,-0.95],[35.04,1.91],[34.01,4.25],[35.30,5.51],[38.12,3.60],[41.86,3.92],[41.59,-1.68],[39.20,-4.68]],[[24.57,8.23],[21.94,12.59],[23.89,15.61],[25.00,22.00],[36.87,22.00],[38.41,18.00],[36.85,16.96],[33.97,8.68],[32.74,12.25],[31.35,9.81],[25.07,10.27],[24.57,8.23]],[[23.84,19.58],[23.89,15.61],[21.94,12.59],[22.86,11.14],[15.28,7.42],[13.54,14.37],[15.90,20.39],[14.85,22.86],[15.86,23.41],[23.84,19.58]],[[-71.71,18.04],[-71.59,19.88],[-68.32,18.61],[-71.71,18.04]],[[49.10,46.40],[46.68,44.61],[48.58,41.81],[47.82,41.15],[36.68,45.24],[40.07,49.60],[31.79,52.10],[31.31,53.07],[32.69,53.35],[30.87,55.55],[27.29,57.47],[29.12,60.03],[28.07,60.50],[31.52,62.87],[30.04,63.55],[29.05,66.94],[29.98,67.70],[28.59,69.06],[32.13,69.91],[41.06,67.46],[38.38,66.00],[33.18,66.63],[37.01,63.85],[37.18,65.14],[39.59,64.52],[42.09,66.48],[43.95,66.07],[43.45,68.57],[46.25,68.25],[46.35,66.67],[53.72,68.86],[59.94,68.28],[60.55,69.85],[68.51,68.09],[66.69,71.03],[69.94,73.04],[72.80,72.22],[71.85,71.41],[73.67,68.41],[71.28,66.32],[72.42,66.17],[75.05,67.76],[73.10,71.45],[74.66,72.83],[76.36,71.15],[77.58,72.27],[81.50,71.75],[80.51,73.65],[104.35,77.70],[114.13,75.85],[109.40,74.18],[126.98,73.57],[131.29,70.79],[132.25,71.84],[139.87,71.49],[139.15,72.42],[140.47,72.85],[159.00,70.87],[160.94,69.44],[169.58,68.69],[170.82,69.01],[170.45,70.10],[180.00,68.96],[180.00,64.98],[177.41,64.61],[179.23,62.30],[170.33,59.88],[163.54,59.87],[162.02,58.24],[163.19,57.62],[162.12,54.86],[156.79,51.01],[155.91,56.77],[164.47,62.55],[160.12,60.54],[159.30,61.77],[156.72,61.43],[154.22,59.76],[155.04,59.14],[142.20,59.04],[135.13,54.73],[141.35,53.09],[140.06,48.45],[134.87,43.40],[130.78,42.22],[131.03,44.97],[133.10,45.14],[135.03,48.48],[130.99,47.79],[127.66,49.76],[125.95,52.79],[123.57,53.46],[120.18,52.75],[120.74,51.96],[117.88,49.51],[108.48,49.28],[98.86,52.05],[97.26,49.73],[92.23,50.80],[87.36,49.21],[83.38,51.07],[80.04,50.86],[76.89,54.49],[73.43,53.49],[69.07,55.39],[61.44,54.01],[59.97,51.96],[61.34,50.80],[50.77,51.69],[48.58,49.87],[47.55,50.45],[46.47,48.39],[49.10,46.40]],[[93.78,81.02],[100.19,79.78],[97.76,78.76],[91.18,80.34],[93.78,81.02]],[[102.84,79.28],[105.37,78.71],[99.44,77.92],[102.84,79.28]],[[138.83,76.14],[145.09,75.56],[136.97,75.26],[138.83,76.14]],[[53.51,73.75],[61.17,76.25],[68.85,76.54],[58.48,74.31],[55.42,72.37],[57.54,70.72],[51.60,71.47],[54.43,73.63],[53.51,73.75]],[[142.91,53.70],[144.65,48.98],[143.17,49.31],[143.51,46.14],[142.09,45.97],[141.68,53.30],[142.91,53.70]],[[-174.93,67.21],[-169.90,65.98],[-172.96,64.25],[-178.69,66.11],[-180.00,64.98],[-180.00,68.96],[-174.93,67.21]],[[33.44,45.97],[36.53,45.47],[33.88,44.36],[32.45,45.33],[33.44,45.97]],[[15.14,79.67],[21.54,78.96],[15.91,76.77],[10.44,79.65],[15.14,79.67]],[[31.10,69.56],[28.59,69.06],[27.73,70.16],[24.74,68.65],[17.99,68.57],[12.58,64.07],[12.30,60.12],[11.03,58.86],[5.67,58.59],[4.99,61.97],[19.18,69.82],[28.17,71.19],[31.29,70.45],[30.01,70.19],[31.10,69.56]],[[-46.76,82.63],[-27.10,83.52],[-20.85,82.73],[-31.90,82.20],[-12.21,81.29],[-20.05,80.18],[-17.73,80.13],[-19.70,78.75],[-18.47,76.99],[-21.68,76.63],[-19.83,76.10],[-20.67,75.16],[-19.37,74.30],[-23.57,73.31],[-22.30,72.18],[-24.79,72.33],[-21.75,70.66],[-25.54,71.43],[-26.36,70.23],[-22.35,70.13],[-39.81,65.46],[-42.82,62.68],[-43.38,60.10],[-48.26,60.86],[-51.63,63.63],[-53.97,67.19],[-50.87,69.93],[-54.68,69.61],[-54.36,70.82],[-51.39,70.57],[-55.83,71.65],[-54.72,72.59],[-58.59,75.52],[-68.50,76.06],[-71.40,77.01],[-66.76,77.38],[-73.30,78.04],[-65.71,79.39],[-68.02,80.12],[-62.65,81.77],[-44.52,81.66],[-46.76,82.63]],[[16.34,-28.58],[19.89,-28.46],[19.90,-24.77],[21.61,-26.73],[23.31,-25.27],[25.66,-25.49],[29.43,-22.09],[31.19,-22.25],[31.93,-24.37],[30.69,-26.74],[32.83,-26.74],[28.22,-32.77],[20.07,-34.80],[18.38,-34.14],[16.34,-28.58]],[[-117.13,32.54],[-106.51,31.75],[-103.94,29.27],[-101.66,29.78],[-99.02,26.37],[-97.14,25.87],[-97.87,22.44],[-95.90,18.83],[-91.41,18.88],[-90.28,21.00],[-87.05,21.54],[-87.84,18.26],[-91.00,17.82],[-90.46,16.07],[-92.23,14.54],[-103.50,18.29],[-113.15,31.17],[-114.94,31.39],[-109.85,22.82],[-115.06,27.72],[-114.16,28.57],[-117.13,32.54]],[[-57.63,-30.22],[-53.79,-32.05],[-53.81,-34.40],[-58.43,-33.91],[-57.63,-30.22]],[[-53.37,-33.77],[-53.79,-32.05],[-57.63,-30.22],[-53.63,-26.12],[-55.80,-22.36],[-57.94,-22.09],[-58.24,-16.30],[-60.16,-16.26],[-60.50,-13.78],[-65.40,-11.57],[-65.34,-9.76],[-70.55,-11.01],[-70.48,-9.49],[-72.18,-10.05],[-73.99,-7.52],[-72.89,-5.27],[-69.89,-4.30],[-69.82,1.71],[-65.55,0.79],[-63.37,2.20],[-64.82,4.06],[-60.73,5.20],[-59.03,1.32],[-52.94,2.12],[-51.32,4.20],[-50.39,-0.08],[-44.91,-1.55],[-44.58,-2.69],[-39.98,-2.87],[-35.60,-5.15],[-34.73,-7.34],[-38.67,-13.06],[-40.94,-21.94],[-47.65,-24.89],[-48.89,-28.67],[-53.37,-33.77]],[[-69.53,-10.95],[-65.34,-9.76],[-65.40,-11.57],[-60.50,-13.78],[-60.16,-16.26],[-58.24,-16.30],[-57.85,-19.97],[-61.79,-19.63],[-62.69,-22.25],[-67.83,-22.87],[-69.59,-17.58],[-68.67,-12.56],[-69.53,-10.95]],[[-69.89,-4.30],[-72.89,-5.27],[-73.99,-7.52],[-72.18,-10.05],[-70.48,-9.49],[-68.67,-12.56],[-70.37,-18.35],[-76.01,-14.65],[-81.41,-4.74],[-80.30,-3.40],[-80.44,-4.43],[-78.64,-4.55],[-75.11,-0.06],[-73.07,-2.31],[-70.05,-2.73],[-69.89,-4.30]],[[-66.88,1.25],[-69.82,1.71],[-69.89,-4.30],[-70.05,-2.73],[-77.42,0.40],[-78.99,1.69],[-77.13,3.85],[-77.47,8.52],[-71.40,12.38],[-73.30,9.15],[-71.96,6.99],[-67.34,6.10],[-66.88,1.25]],[[-77.35,8.67],[-77.88,7.22],[-79.12,9.00],[-80.89,7.22],[-82.85,8.07],[-82.93,9.48],[-77.35,8.67]],[[-82.55,9.57],[-82.97,8.23],[-85.94,10.90],[-83.66,10.94],[-82.55,9.57]],[[-83.66,10.94],[-87.67,12.91],[-83.15,15.00],[-83.66,10.94]],[[-83.15,15.00],[-87.32,12.98],[-89.35,14.42],[-87.90,15.86],[-83.15,15.00]],[[-92.23,14.54],[-90.46,16.07],[-91.00,17.82],[-89.14,17.81],[-89.23,15.89],[-88.23,15.73],[-89.35,14.42],[-92.23,14.54]],[[-60.73,5.20],[-64.82,4.06],[-63.37,2.20],[-66.33,0.72],[-67.81,2.82],[-67.34,6.10],[-71.96,6.99],[-72.91,10.45],[-71.33,11.78],[-71.26,9.14],[-71.40,10.97],[-69.94,12.16],[-68.19,10.55],[-61.88,10.72],[-62.73,10.42],[-59.76,8.37],[-61.41,5.96],[-60.73,5.20]],[[-56.54,1.90],[-59.65,1.79],[-59.98,5.01],[-61.41,5.96],[-59.76,8.37],[-57.15,5.97],[-58.04,4.06],[-56.54,1.90]],[[-54.52,2.31],[-56.54,1.90],[-57.60,3.33],[-57.15,5.97],[-53.96,5.76],[-54.52,2.31]],[[-51.66,4.16],[-52.94,2.12],[-54.52,2.31],[-53.96,5.76],[-51.66,4.16]],[[6.19,49.46],[8.10,49.02],[6.04,46.73],[7.44,43.69],[1.83,42.34],[-1.90,43.42],[-1.19,46.01],[-4.59,48.68],[-1.62,48.64],[-1.93,49.78],[2.51,51.15],[6.19,49.46]],[[-75.37,-0.15],[-78.64,-4.55],[-80.44,-4.43],[-80.09,0.77],[-75.37,-0.15]],[[-82.27,23.19],[-74.18,20.28],[-77.76,19.86],[-77.09,20.41],[-78.72,21.60],[-81.80,22.64],[-84.97,21.90],[-82.27,23.19]],[[31.19,-22.25],[28.02,-21.49],[25.26,-17.74],[27.04,-17.94],[30.27,-15.51],[32.85,-16.71],[31.19,-22.25]],[[29.43,-22.09],[25.66,-25.49],[23.31,-25.27],[21.61,-26.73],[19.90,-24.77],[20.91,-18.25],[25.26,-17.74],[29.43,-22.09]],[[19.90,-24.77],[19.89,-28.46],[16.34,-28.58],[11.73,-17.30],[25.08,-17.58],[20.91,-18.25],[19.90,-24.77]],[[-16.71,13.59],[-17.63,14.73],[-14.58,16.60],[-11.51,12.44],[-16.68,12.38],[-13.84,13.51],[-16.71,13.59]],[[-11.51,12.44],[-11.67,15.39],[-5.54,15.50],[-6.45,24.96],[4.27,19.16],[3.64,15.57],[-4.01,13.47],[-5.40,10.37],[-8.03,10.21],[-9.13,12.31],[-11.51,12.44]],[[-17.06,21.00],[-12.93,21.33],[-11.97,25.93],[-8.69,25.88],[-8.68,27.40],[-4.92,24.97],[-6.45,24.96],[-5.54,15.50],[-12.17,14.62],[-14.58,16.60],[-16.46,16.14],[-17.06,21.00]],[[2.69,6.26],[0.77,10.47],[2.85,12.24],[3.80,10.73],[2.69,6.26]],[[14.85,22.86],[15.90,20.39],[13.54,14.37],[14.18,12.48],[13.08,13.60],[9.01,12.83],[5.44,13.87],[3.61,11.66],[1.02,12.85],[0.37,14.93],[3.64,15.57],[4.27,19.16],[12.00,23.47],[14.85,22.86]],[[2.69,6.26],[4.37,13.75],[13.08,13.60],[14.58,12.09],[11.75,6.98],[9.23,6.44],[8.50,4.77],[5.90,4.26],[4.33,6.27],[2.69,6.26]],[[14.50,12.86],[15.47,9.98],[13.95,9.55],[15.44,7.69],[14.48,4.73],[15.94,1.73],[9.65,2.28],[8.76,5.48],[11.75,6.98],[14.50,12.86]],[[0.90,11.00],[1.06,5.93],[-0.05,10.71],[0.90,11.00]],[[0.02,11.02],[1.06,5.93],[-2.86,4.99],[-2.94,10.96],[0.02,11.02]],[[-8.03,10.21],[-2.83,9.64],[-2.86,4.99],[-7.71,4.36],[-8.03,10.21]],[[-13.70,12.59],[-9.13,12.31],[-8.28,7.69],[-10.51,8.35],[-11.12,10.05],[-13.25,8.90],[-15.13,11.04],[-13.70,12.59]],[[-16.68,12.38],[-13.74,11.81],[-15.13,11.04],[-16.68,12.38]],[[-8.44,7.69],[-7.71,4.36],[-11.44,6.79],[-10.23,8.41],[-8.44,7.69]],[[-13.25,8.90],[-11.12,10.05],[-10.23,8.41],[-11.44,6.79],[-13.25,8.90]],[[-5.40,10.37],[-4.28,13.23],[-1.07,14.97],[2.18,12.63],[0.90,11.00],[-2.94,10.96],[-2.83,9.64],[-5.40,10.37]],[[27.37,5.23],[22.41,4.03],[19.47,5.03],[16.01,2.27],[14.46,5.45],[15.28,7.42],[22.86,11.14],[23.46,8.95],[27.37,5.23]],[[18.45,3.50],[16.01,-3.54],[14.58,-4.97],[11.91,-5.04],[11.48,-2.77],[14.43,-1.33],[13.08,2.27],[15.94,1.73],[17.13,3.73],[18.45,3.50]],[[11.28,2.26],[14.28,1.20],[14.43,-1.33],[11.09,-3.98],[8.80,-1.11],[11.28,2.26]],[[30.74,-8.34],[33.23,-9.68],[33.21,-13.97],[30.18,-14.80],[27.04,-17.94],[23.22,-17.52],[21.89,-16.08],[21.93,-12.90],[24.02,-12.91],[23.91,-10.93],[29.70,-13.26],[28.45,-9.16],[30.74,-8.34]],[[32.76,-9.23],[34.28,-10.16],[35.69,-14.61],[35.03,-16.80],[34.46,-14.61],[32.69,-13.71],[32.76,-9.23]],[[34.56,-11.52],[40.32,-10.32],[40.78,-14.69],[34.79,-19.78],[35.46,-24.12],[32.07,-26.73],[31.19,-22.25],[32.85,-16.71],[30.18,-14.80],[33.21,-13.97],[35.03,-16.80],[34.56,-11.52]],[[12.32,-6.10],[16.33,-5.88],[17.47,-8.07],[21.73,-7.29],[22.16,-11.08],[24.02,-11.24],[24.02,-12.91],[21.93,-12.90],[21.89,-16.08],[23.22,-17.52],[11.73,-17.30],[13.74,-11.30],[12.32,-6.10]],[[49.54,-12.47],[50.38,-15.71],[47.10,-24.94],[45.41,-25.60],[43.35,-22.78],[43.96,-17.41],[49.54,-12.47]],[[9.48,30.31],[7.52,34.10],[9.51,37.35],[11.03,37.09],[10.15,34.33],[11.49,33.14],[9.48,30.31]],[[-8.68,27.40],[-8.67,28.84],[-1.31,32.26],[-2.17,35.17],[-1.21,35.71],[8.42,36.95],[7.52,34.10],[9.81,29.42],[9.32,26.09],[12.00,23.47],[3.16,19.06],[-8.68,27.40]],[[35.55,32.39],[38.79,33.38],[39.20,32.16],[37.00,31.51],[38.00,30.51],[36.07,29.20],[34.92,29.50],[35.55,32.39]],[[51.58,24.25],[56.26,25.71],[55.01,22.50],[52.00,23.00],[51.58,24.25]],[[39.20,32.16],[38.79,33.38],[41.01,34.42],[41.29,36.36],[44.77,37.17],[46.08,35.68],[45.42,33.97],[48.57,29.93],[44.71,29.18],[39.20,32.16]],[[55.21,22.71],[56.40,24.92],[59.81,22.31],[57.69,18.94],[53.11,16.65],[52.00,19.00],[55.00,20.00],[55.21,22.71]],[[102.58,12.19],[102.99,14.23],[106.50,14.57],[107.61,13.54],[106.25,10.96],[103.50,10.63],[102.58,12.19]],[[105.22,14.27],[102.99,14.23],[102.58,12.19],[100.10,13.41],[99.22,9.24],[102.14,6.22],[101.15,5.69],[98.15,8.35],[99.59,11.89],[97.38,18.45],[100.12,20.42],[101.06,17.51],[104.72,17.43],[105.22,14.27]],[[107.38,14.20],[105.22,14.27],[103.96,18.24],[101.06,17.51],[100.12,20.42],[101.65,22.32],[104.44,20.76],[103.90,19.27],[107.31,15.91],[107.38,14.20]],[[100.12,20.42],[97.38,18.45],[99.59,11.89],[98.55,9.93],[97.16,16.93],[94.19,16.04],[92.30,21.48],[97.33,28.26],[98.68,27.51],[97.60,23.90],[101.15,21.85],[100.12,20.42]],[[104.33,10.49],[107.49,12.34],[107.56,15.20],[102.17,22.46],[105.33,23.35],[108.05,21.55],[105.66,19.06],[108.88,15.28],[109.20,11.67],[105.16,8.60],[104.33,10.49]],[[130.64,42.40],[127.53,39.76],[128.21,38.37],[124.71,38.11],[125.08,40.57],[130.64,42.40]],[[126.17,37.75],[128.35,38.61],[129.09,35.08],[126.49,34.39],[126.17,37.75]],[[87.75,49.30],[92.23,50.80],[97.26,49.73],[98.86,52.05],[108.48,49.28],[116.68,49.89],[115.74,47.73],[119.77,47.05],[111.87,45.10],[110.41,42.87],[104.96,41.60],[96.35,42.73],[95.31,44.24],[90.95,45.29],[90.97,46.89],[87.75,49.30]],[[92.67,22.04],[92.37,20.67],[91.42,22.77],[89.03,22.06],[88.56,26.45],[92.38,24.98],[91.16,23.50],[92.67,22.04]],[[91.70,27.77],[92.03,26.84],[88.84,27.10],[90.02,28.30],[91.70,27.77]],[[88.12,27.88],[87.23,26.40],[80.09,28.79],[81.53,30.42],[88.12,27.88]],[[77.84,35.49],[73.75,34.32],[75.26,32.27],[69.51,26.94],[71.04,24.36],[68.18,23.69],[66.37,25.43],[61.50,25.08],[63.32,26.76],[60.87,29.83],[66.35,29.89],[69.32,31.90],[71.85,36.51],[75.16,37.13],[77.84,35.49]],[[66.52,37.36],[69.20,37.15],[70.81,38.49],[71.84,36.74],[75.16,37.13],[71.26,36.07],[69.32,31.90],[66.35,29.89],[60.87,29.83],[61.78,30.74],[60.54,32.98],[61.21,35.65],[66.52,37.36]],[[67.83,37.14],[67.70,39.58],[70.67,40.96],[69.46,39.53],[73.68,39.43],[74.98,37.42],[71.84,36.74],[70.81,38.49],[67.83,37.14]],[[70.96,42.27],[74.21,43.30],[80.26,42.35],[73.68,39.43],[69.46,39.53],[73.06,40.87],[70.42,41.52],[70.96,42.27]],[[52.50,41.78],[57.10,41.32],[58.63,42.75],[66.52,37.36],[62.23,35.27],[57.33,38.03],[53.92,37.20],[52.69,40.03],[54.74,40.95],[52.50,41.78]],[[48.57,29.93],[45.42,33.97],[46.08,35.68],[44.11,39.43],[48.06,39.58],[50.84,36.87],[56.62,38.12],[61.12,36.49],[60.54,32.98],[61.78,30.74],[60.87,29.83],[63.32,26.76],[61.50,25.08],[57.40,25.74],[56.97,26.97],[53.49,26.81],[50.12,30.15],[48.57,29.93]],[[35.72,32.71],[36.74,36.82],[42.35,37.23],[41.01,34.42],[35.72,32.71]],[[46.51,38.77],[43.58,41.09],[45.56,40.81],[46.51,38.77]],[[11.03,58.86],[12.63,61.29],[11.93,63.13],[16.77,68.01],[20.65,69.11],[23.54,67.94],[23.90,66.01],[17.85,62.75],[17.12,61.34],[18.79,60.08],[15.88,56.10],[12.94,55.36],[11.03,58.86]],[[28.18,56.17],[30.87,55.55],[32.69,53.35],[31.31,53.07],[31.79,52.10],[23.53,51.58],[23.48,53.91],[28.18,56.17]],[[31.79,52.10],[40.07,49.60],[39.74,47.90],[35.01,45.74],[31.68,46.71],[28.68,45.30],[30.02,46.42],[28.67,48.12],[22.09,48.42],[23.53,51.58],[31.79,52.10]],[[23.48,53.91],[24.03,50.71],[22.78,49.03],[16.18,50.42],[14.07,52.98],[17.62,54.85],[23.48,53.91]],[[16.98,48.12],[14.63,46.43],[9.48,47.10],[12.93,47.47],[13.60,48.88],[16.98,48.12]],[[22.09,48.42],[21.02,46.32],[16.20,46.85],[16.98,48.12],[22.09,48.42]],[[26.62,48.22],[28.67,48.12],[30.02,46.42],[28.23,45.49],[26.62,48.22]],[[28.23,45.49],[29.60,45.29],[28.56,43.71],[22.94,43.82],[20.22,46.13],[23.14,48.10],[26.62,48.22],[28.23,45.49]],[[26.49,55.62],[23.48,53.91],[21.06,56.03],[26.49,55.62]],[[27.29,57.47],[28.18,56.17],[26.49,55.62],[21.06,56.03],[22.52,57.75],[27.29,57.47]],[[27.98,59.48],[27.29,57.47],[24.31,57.79],[23.34,59.19],[27.98,59.48]],[[14.12,53.76],[15.02,51.11],[12.24,50.27],[13.60,48.88],[12.93,47.47],[7.47,47.62],[8.10,49.02],[6.04,50.13],[7.10,53.69],[9.92,54.98],[14.12,53.76]],[[22.66,44.23],[28.56,43.71],[28.00,42.01],[22.95,41.34],[22.66,44.23]],[[22.95,41.34],[26.60,41.56],[22.63,40.26],[24.04,37.66],[22.49,36.41],[20.15,39.62],[22.95,41.34]],[[44.77,37.17],[29.70,36.14],[27.64,36.66],[26.17,39.46],[33.51,42.02],[42.62,41.58],[44.79,39.71],[44.77,37.17]],[[21.02,40.84],[19.41,40.25],[19.74,42.69],[21.02,40.84]],[[16.56,46.50],[19.39,45.24],[15.75,44.82],[18.45,42.48],[13.66,45.14],[16.56,46.50]],[[9.59,47.53],[10.36,46.48],[6.02,46.27],[6.74,47.54],[9.59,47.53]],[[6.16,50.80],[5.67,49.53],[2.51,51.15],[6.16,50.80]],[[6.91,53.48],[6.16,50.80],[3.31,51.35],[6.91,53.48]],[[-9.03,41.88],[-6.39,41.38],[-7.86,36.84],[-9.53,38.74],[-9.03,41.88]],[[-7.45,37.10],[-6.39,41.38],[-9.39,43.03],[2.99,42.47],[-2.15,36.67],[-5.38,35.95],[-7.45,37.10]],[[-6.20,53.87],[-6.79,52.26],[-9.98,51.82],[-9.69,53.88],[-7.57,55.13],[-6.20,53.87]],[[176.89,-40.07],[174.65,-41.28],[174.70,-37.38],[172.64,-34.53],[175.96,-37.56],[178.52,-37.70],[176.89,-40.07]],[[169.67,-43.56],[172.80,-40.49],[174.25,-41.35],[170.62,-45.91],[166.68,-46.22],[169.67,-43.56]],[[147.69,-40.81],[147.91,-43.21],[146.05,-43.55],[144.74,-40.70],[147.69,-40.81]],[[126.15,-32.22],[118.02,-35.06],[115.03,-34.20],[115.80,-32.21],[113.34,-26.12],[114.23,-26.30],[113.74,-22.48],[120.86,-19.68],[125.69,-14.23],[129.62,-14.97],[132.36,-11.13],[136.49,-11.86],[135.50,-15.00],[140.22,-17.71],[142.52,-10.67],[146.39,-18.96],[150.73,-22.40],[153.57,-28.11],[150.00,-37.43],[146.32,-39.04],[145.03,-37.90],[143.61,-38.81],[140.64,-38.02],[138.21,-34.38],[136.83,-35.26],[137.81,-32.90],[135.99,-34.89],[131.33,-31.50],[126.15,-32.22]],[[81.79,7.52],[80.35,5.97],[80.15,9.82],[81.79,7.52]],[[80.26,42.35],[79.97,44.92],[87.75,49.30],[90.97,46.89],[90.95,45.29],[95.31,44.24],[96.35,42.73],[104.96,41.60],[109.24,42.52],[111.83,43.74],[111.87,45.10],[119.66,46.69],[115.49,48.14],[122.25,53.43],[125.95,52.79],[127.66,49.76],[130.99,47.79],[135.03,48.48],[133.10,45.14],[131.03,44.97],[130.64,42.40],[121.05,38.90],[121.64,40.95],[117.53,38.74],[119.70,37.16],[122.36,37.45],[119.15,34.91],[121.91,31.69],[121.68,28.23],[118.66,24.55],[110.44,20.34],[105.33,23.35],[101.65,22.32],[101.80,21.17],[99.24,22.12],[98.66,24.06],[97.60,23.90],[98.68,27.51],[96.12,29.45],[88.81,27.30],[78.74,31.52],[78.91,34.32],[73.68,39.43],[80.26,42.35]],[[121.78,24.39],[120.75,21.97],[120.11,23.56],[121.50,25.30],[121.78,24.39]],[[10.44,46.89],[13.81,46.51],[12.59,44.09],[18.29,39.81],[16.87,40.44],[15.68,37.91],[15.41,40.05],[10.20,43.92],[7.44,43.69],[6.84,45.99],[10.44,46.89]],[[9.92,54.98],[8.53,54.96],[8.09,56.54],[10.58,57.73],[9.92,54.98]],[[-3.09,53.40],[-6.15,56.79],[-5.01,58.63],[-1.96,57.68],[-3.12,55.97],[1.68,52.74],[1.45,51.29],[-5.78,50.16],[-3.41,51.43],[-5.27,51.99],[-4.58,53.50],[-3.09,53.40]],[[-14.51,66.46],[-13.61,65.13],[-18.66,63.50],[-22.76,63.96],[-21.78,64.40],[-23.96,64.89],[-22.23,65.38],[-24.33,65.61],[-14.51,66.46]],[[46.40,41.86],[50.39,40.26],[48.88,38.32],[45.61,39.90],[44.97,41.25],[46.40,41.86]],[[39.96,43.43],[45.47,42.50],[46.64,41.18],[41.55,41.54],[39.96,43.43]],[[126.38,8.41],[125.40,5.58],[123.61,7.83],[121.92,7.19],[125.41,9.76],[126.38,8.41]],[[122.34,18.22],[121.73,14.33],[123.95,13.78],[124.08,12.54],[120.63,13.86],[119.92,15.41],[120.72,18.51],[122.34,18.22]],[[100.09,6.46],[102.96,5.52],[104.23,1.29],[101.39,2.76],[100.09,6.46]],[[117.88,4.14],[115.87,4.31],[114.62,1.43],[109.83,1.34],[115.35,4.32],[116.73,6.92],[119.18,5.41],[117.88,4.14]],[[28.59,69.06],[31.14,62.36],[28.07,60.50],[21.32,60.72],[21.54,63.19],[25.40,65.11],[23.54,67.94],[20.65,69.11],[24.74,68.65],[27.73,70.16],[28.59,69.06]],[[15.02,51.11],[18.85,49.50],[14.34,48.56],[12.52,49.55],[15.02,51.11]],[[36.43,14.42],[36.85,16.96],[38.41,18.00],[43.08,12.70],[40.03,14.52],[36.43,14.42]],[[141.88,39.18],[140.25,35.14],[135.79,33.46],[135.08,34.60],[130.99,33.89],[132.00,33.15],[130.20,31.42],[129.41,33.30],[139.43,38.22],[140.31,41.20],[141.37,41.38],[141.88,39.18]],[[144.61,43.96],[145.54,43.26],[139.96,41.57],[141.97,45.55],[144.61,43.96]],[[-58.17,-20.18],[-57.94,-22.09],[-54.29,-24.02],[-55.70,-27.39],[-58.62,-27.12],[-57.78,-25.16],[-62.69,-22.25],[-61.79,-19.63],[-58.17,-20.18]],[[52.00,19.00],[53.11,16.65],[52.17,15.60],[43.48,12.64],[43.38,17.58],[47.00,16.95],[52.00,19.00]],[[34.96,29.36],[37.50,30.00],[37.00,31.51],[39.20,32.16],[47.46,29.00],[52.00,23.00],[55.21,22.71],[55.00,20.00],[47.00,16.95],[43.38,17.58],[42.78,16.35],[34.63,28.06],[34.96,29.36]],[[-48.66,-78.05],[-43.92,-78.48],[-43.33,-80.03],[-54.16,-80.63],[-48.66,-78.05]],[[-66.29,-80.26],[-59.57,-80.04],[-60.16,-81.00],[-66.29,-80.26]],[[-73.92,-71.27],[-72.07,-71.19],[-70.25,-68.88],[-68.33,-71.41],[-74.95,-72.07],[-73.92,-71.27]],[[180.00,-84.71],[180.00,-90.00],[-180.00,-90.00],[-179.06,-84.14],[-143.11,-85.04],[-153.59,-83.69],[-152.86,-82.04],[-156.84,-81.10],[-146.42,-80.34],[-155.33,-79.06],[-158.37,-76.89],[-151.33,-77.40],[-146.10,-76.48],[-146.20,-75.38],[-135.21,-74.30],[-113.94,-73.71],[-107.56,-75.18],[-100.12,-74.87],[-103.68,-72.62],[-74.89,-73.87],[-67.37,-72.48],[-68.54,-69.72],[-67.74,-67.33],[-57.81,-63.27],[-65.67,-67.95],[-61.81,-70.72],[-60.83,-73.70],[-70.60,-76.63],[-77.24,-76.71],[-73.66,-77.91],[-78.02,-79.18],[-58.22,-83.22],[-28.55,-80.34],[-29.69,-79.26],[-35.64,-79.46],[-35.78,-78.34],[-17.52,-75.13],[-15.45,-73.15],[-6.87,-70.93],[27.09,-70.46],[33.87,-68.50],[38.65,-69.78],[54.53,-65.82],[61.43,-67.95],[68.89,-67.93],[69.67,-69.23],[67.81,-70.31],[69.07,-70.68],[67.95,-71.85],[69.87,-72.26],[73.86,-69.87],[87.99,-66.21],[95.78,-67.39],[99.72,-67.25],[102.83,-65.56],[106.18,-66.93],[113.60,-65.88],[119.83,-67.27],[134.76,-66.21],[135.07,-65.31],[137.46,-66.95],[145.49,-66.92],[171.21,-71.70],[163.57,-76.24],[164.74,-78.18],[167.00,-78.75],[161.77,-79.16],[159.79,-80.95],[169.40,-83.83],[180.00,-84.71]],[[-2.17,35.17],[-1.31,32.26],[-8.67,28.84],[-8.79,27.12],[-11.39,26.88],[-14.75,21.50],[-17.02,21.42],[-14.44,26.25],[-9.56,29.93],[-8.66,33.24],[-5.93,35.76],[-2.17,35.17]],[[36.87,22.00],[25.00,22.00],[25.16,31.57],[34.27,31.22],[34.15,27.82],[32.32,29.76],[36.87,22.00]],[[25.00,22.00],[25.00,20.00],[23.84,19.58],[15.86,23.41],[14.14,22.49],[10.30,24.38],[9.32,26.09],[9.95,31.38],[11.49,33.14],[19.09,30.27],[20.85,32.71],[24.92,31.90],[25.00,22.00]],[[47.79,8.00],[44.96,5.00],[39.56,3.42],[36.16,4.45],[32.95,7.78],[36.43,14.42],[37.91,14.96],[41.60,13.45],[41.76,11.05],[43.68,9.18],[47.79,8.00]],[[48.95,11.41],[47.79,8.00],[42.56,10.57],[48.95,11.41]],[[33.90,-0.95],[29.58,-1.34],[31.25,3.78],[34.48,3.56],[33.90,-0.95]],[[18.56,42.65],[15.96,45.23],[19.37,44.86],[18.56,42.65]],[[18.83,45.91],[22.71,44.58],[22.55,42.46],[19.22,43.52],[18.83,45.91]],[[30.83,3.51],[27.98,4.41],[23.89,8.62],[25.79,10.41],[31.35,9.81],[33.21,12.18],[33.97,8.68],[32.95,7.78],[35.30,5.51],[30.83,3.51]]];
+var mapHot=-1,mapSel=0;
+function drawMap(){
+  var cv=$("#map"),host=cv.parentElement,w=host.clientWidth||520,h=Math.round(w*1.05);
+  var dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+"px";
+  var g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
+  /* equal scale on both axes, then centre, otherwise the country is stretched */
+  var pad=14,lonSpan=LON[1]-LON[0],latSpan=LAT[1]-LAT[0];
+  var k=Math.min((w-pad*2)/lonSpan,(h-pad*2)/latSpan);
+  var ox=(w-lonSpan*k)/2,oy=(h-latSpan*k)/2;
+  function PX(l){return ox+(l-LON[0])*k}
+  function PY(l){return oy+(LAT[1]-l)*k}
+  function trace(ring){
+    g.beginPath();
+    ring.forEach(function(p,i){i?g.lineTo(PX(p[0]),PY(p[1])):g.moveTo(PX(p[0]),PY(p[1]))});
+    g.closePath();
+  }
+  trace(INDIA);
+  g.fillStyle=css("--raised");g.fill();
+  g.strokeStyle=css("--axis");g.lineWidth=1.1;g.stroke();
+  INDIA_ISLES.forEach(function(r){
+    trace(r);g.fillStyle=css("--raised");g.fill();
+    g.strokeStyle=css("--axis");g.lineWidth=.9;g.stroke();
+  });
+  var s1=css("--s1"),s2=css("--s2");
+  ROUTES.forEach(function(r,i){
+    var a=AP[r.o],b=AP[r.d],x1=PX(a[0]),y1=PY(a[1]),x2=PX(b[0]),y2=PY(b[1]);
+    var dx=x2-x1,dy=y2-y1,cx=(x1+x2)/2-dy*0.22,cy=(y1+y2)/2+dx*0.22;
+    g.beginPath();g.moveTo(x1,y1);g.quadraticCurveTo(cx,cy,x2,y2);
+    var on=(i===mapHot||i===mapSel);
+    g.strokeStyle=r.yoy>=0?s2:s1;g.globalAlpha=on?1:0.4;
+    g.lineWidth=on?4:Math.max(1.2,r.w*0.42);g.lineCap="round";g.stroke();g.globalAlpha=1;
+    r._px={x1:x1,y1:y1,x2:x2,y2:y2,cx:cx,cy:cy};
+  });
+  var seen={};
+  ROUTES.forEach(function(r){[r.o,r.d].forEach(function(k){
+    if(seen[k])return;seen[k]=1;
+    var p=AP[k],x=PX(p[0]),y=PY(p[1]);
+    g.beginPath();g.arc(x,y,3.4,0,7);g.fillStyle=css("--ink");g.fill();
+    g.strokeStyle=css("--surface");g.lineWidth=1.8;g.stroke();
+    g.font='600 11px "IBM Plex Mono",monospace';g.fillStyle=css("--muted");g.textAlign="center";
+    g.fillText(k,x,y-8);
+  })});
+}
+function mapPick(mx,my){
+  var best=-1,bd=15;
+  ROUTES.forEach(function(r,i){
+    if(!r._px)return;
+    for(var t=0;t<=1;t+=0.05){
+      var u=1-t,x=u*u*r._px.x1+2*u*t*r._px.cx+t*t*r._px.x2,
+          y=u*u*r._px.y1+2*u*t*r._px.cy+t*t*r._px.y2,d=Math.hypot(x-mx,y-my);
+      if(d<bd){bd=d;best=i}
+    }
+  });
+  return best;
+}
+
+/* ==================================================================== RENDER */
+function renderIndex(mode){
+  var lab=IDX.map(function(d){return d.label}),S=[];
+  if(mode!=="sa")S.push({n:"Actual",full:"Actual fares",v:IDX.map(function(d){return d.raw}),c:css("--s2"),dash:"7 4"});
+  if(mode!=="raw")S.push({n:"Trend",full:"Seasonal swings removed",v:IDX.map(function(d){return d.sa}),c:css("--s1")});
+  $("#lgIndex").innerHTML=S.map(function(s){
+    return '<span class="lg"><svg viewBox="0 0 22 9" aria-hidden="true"><line x1="0" y1="4.5" x2="22" y2="4.5" stroke="'+s.c+
+      '" stroke-width="3" stroke-linecap="round"'+(s.dash?' stroke-dasharray="7 4"':"")+'/></svg>'+
+      (s.n==="Actual"?"What fares actually did":"Seasonal swings removed")+"</span>";
+  }).join("")+'<span class="lg"><i class="sq" style="background:var(--band)"></i>Range of uncertainty</span>';
+  lineChart($("#chIndex"),{labels:lab,series:S,h:238,
+    band:mode==="raw"?null:{lo:IDX.map(function(d){return d.lo}),hi:IDX.map(function(d){return d.hi})},
+    dec:0,fmt:function(v){return v.toFixed(1)}});
+}
+function renderWaterfall(){
+  var all=ROUTES.map(function(r){return {n:r.o+"–"+r.d,v:r.yoy*r.w/100*1.4,w:r.w}})
+    .sort(function(a,b){return b.v-a.v});
+  bars($("#chWaterfall"),{items:all.filter(function(d){return d.v>0}).slice(0,6)
+    .concat(all.filter(function(d){return d.v<0}).slice(-5))});
+}
+var showOneCell=false;
+function renderSurface(){
+  var rt=ROUTES[mapSel],g=surfaceFor(rt),cols=[],j;
+  $("#surfRoute").textContent=rt.o+" → "+rt.d;
+  for(j=0;j<10;j++)cols.push((j+1)+" Sep");
+  heatmap($("#chSurface"),{rows:LEADS.map(function(l){return l+"d"}),cols:cols,data:g,
+    cw:50,ch:30,pl:38,only:showOneCell?[5,8]:null,
+    cell:function(v){return(v/1000).toFixed(1)+"k"},tipfmt:inr,vlabel:"Typical fare"});
+  var lead=g.map(function(r){return r.slice().sort(function(a,b){return a-b})[5]});
+  lineChart($("#chLead"),{labels:LEADS.map(function(l){return l+"d"}),
+    series:[{n:"",full:"Typical fare",v:lead,c:css("--s1")}],h:138,pr:18,pl:56,
+    directLabel:false,dec:0,ytick:function(v){return"₹"+(v/1000).toFixed(1)+"k"},fmt:inr});
+  $("#penalty").textContent=(lead[0]/lead[7]).toFixed(1)+"×";
+  var flat=[];g.forEach(function(r){flat=flat.concat(r)});
+  flat.sort(function(a,b){return a-b});
+  $("#cellGap").textContent=Math.abs(Math.round((g[5][8]-flat[40])/flat[40]*100))+"%";
+  $$("#routeTbl tbody tr").forEach(function(tr,i){tr.setAttribute("aria-selected",String(i===mapSel))});
+  drawMap();
+  if(typeof surf!=="undefined"&&surf&&!document.getElementById("surf3d").hidden)buildSurf3d(g);
+}
+function renderRouteTable(){
+  var tb=$("#routeTbl tbody");
+  tb.innerHTML=ROUTES.map(function(r,i){
+    var c=r.yoy>=0?"var(--s2)":"var(--s1)";
+    return '<tr data-i="'+i+'" tabindex="0" aria-selected="false"><td><span class="dot" style="background:'+c+
+      '"></span><span class="num">'+r.o+"–"+r.d+'</span></td><td class="r num">'+r.w.toFixed(1)+
+      '%</td><td class="r num">'+r.idx.toFixed(1)+'</td><td class="r num" style="color:'+c+'">'+
+      (r.yoy>=0?"+":"−")+Math.abs(r.yoy).toFixed(1)+"%</td></tr>";
+  }).join("");
+  $$("#routeTbl tbody tr").forEach(function(tr){
+    function pick(){mapSel=+tr.dataset.i;renderSurface()}
+    tr.addEventListener("click",pick);
+    tr.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pick()}});
+  });
+}
+function renderMethod(){
+  var win=+$("#win").value,m=methodSeries(win),lab=[],i;
+  for(i=0;i<30;i++)lab.push("M"+(i+1));
+  $("#lgMethod").innerHTML=
+    '<span class="lg"><svg viewBox="0 0 22 9" aria-hidden="true"><line x1="0" y1="4.5" x2="22" y2="4.5" stroke="'+css("--s2")+'" stroke-width="3" stroke-dasharray="7 4" stroke-linecap="round"/></svg>Simple daily averaging, wrong</span>'+
+    '<span class="lg"><svg viewBox="0 0 22 9" aria-hidden="true"><line x1="0" y1="4.5" x2="22" y2="4.5" stroke="'+css("--s1")+'" stroke-width="3" stroke-linecap="round"/></svg>VIMAAN’s method</span>'+
+    '<span class="lg" style="color:var(--muted)">The true price never changes, it stays at 100</span>';
+  lineChart($("#chMethod"),{labels:lab,h:280,min:96,max:117,
+    series:[{n:"Simple",full:"Simple daily averaging",v:m.naive,c:css("--s2"),dash:"7 4"},
+            {n:"VIMAAN",full:"VIMAAN’s method",v:m.geks,c:css("--s1")}],
+    dec:0,fmt:function(v){return v.toFixed(2)}});
+  var nd=m.naive[29]-100,gd=m.geks[29]-100;
+  $("#mNaive").textContent="+"+nd.toFixed(1);
+  $("#mGeks").textContent=(Math.abs(gd)<0.05?"":(gd>=0?"+":"−"))+Math.abs(gd).toFixed(1);
+  $("#mCut").textContent=Math.min(99,Math.max(0,Math.round((1-Math.abs(gd)/nd)*100)))+"%";
+  $("#winV").textContent=win+(win===1?" month":" months");
+}
+var ICON_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>',
+    ICON_WARN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>';
+function renderQuality(){
+  var r=rng(919),rows=["Big-city routes","City to town","Regional","UDAN","Northeast"],cols=[],data=[],i,j;
+  for(j=0;j<30;j++)cols.push(j%5===0?String(j+1):"");
+  for(i=0;i<5;i++){
+    var row=[];
+    for(j=0;j<30;j++){
+      var v=97+r()*3;
+      if(i===2&&j===17)v=86.4;
+      if(i===4&&(j===18||j===19))v=88+r()*3;
+      row.push(Math.min(100,v));
+    }
+    data.push(row);
+  }
+  /* expected days sit almost at surface level; only shortfalls take colour */
+  var QUIET=css("--raised"),MID=css("--q6"),GAP=css("--s1");
+  heatmap($("#chCover"),{rows:rows,cols:cols,data:data,cw:18,ch:26,pl:98,label:false,
+    cellColor:function(v){return v>=97?QUIET:(v>=93?MID:GAP)},
+    tipfmt:function(v){return v.toFixed(1)+"% of fares collected"},vlabel:"Collected"});
+  var slo=[["Airline tariff pages","Legally required to be public",99.7,1],
+           ["Licensed data feed","Paid, contracted access",100,1],
+           ["Travel websites","Read politely, rate-limited",96.2,0],
+           ["The index engine","Runs every night",100,1],
+           ["Handover to MoSPI","The SDMX feed",99.9,1]];
+  $("#slos").innerHTML=slo.map(function(s){
+    var ok=s[3],c=ok?"var(--good)":"var(--warn)";
+    return '<div class="slo"><span style="color:'+c+'">'+(ok?ICON_OK:ICON_WARN)+'</span>'+
+      '<span class="nm">'+s[0]+"<span>"+s[1]+'</span></span><span class="bar"><i style="width:'+s[2]+
+      '%;background:'+(ok?"var(--good)":"var(--warn-fill)")+'"></i></span><span class="pc">'+s[2].toFixed(1)+"%</span></div>";
+  }).join("");
+}
+function sdmxBlock(){
+  $("#sdmx").textContent =
+    'GET /v1/sdmx/CPI_AIRFARE?period=2026-08\n\n'+
+    '  observations   2026-08 : 118.7\n'+
+    '  basis          departure_month\n'+
+    '  method         GEKS-Jevons, 25-month window\n'+
+    '  coverage       98.2%   imputed 1.4%\n'+
+    '  reproHash      a7f3c02e9b41d8...';
+}
+
+function tickClock(){
+  var d=new Date(),ist=new Date(d.getTime()+d.getTimezoneOffset()*60000+5.5*3600000);
+  var h=ist.getHours(),m=ist.getMinutes();
+  $("#clk").textContent=[h,m,ist.getSeconds()].map(function(n){return String(n).padStart(2,"0")}).join(":")+" IST";
+  var slots=[2,11,19],nx=slots.filter(function(s){return s>h})[0];
+  if(nx==null)nx=slots[0]+24;
+  var mins=(nx-h)*60-m;
+  $("#nxt").textContent="next check in "+Math.floor(mins/60)+"h "+(mins%60)+"m";
+}
+
+/* ==================================================================== GLOSSARY */
+var GLOSS={
+  base:["Base 2024 = 100","We set the average 2026‑basket fare level of 2024 to 100. Every later number is measured against that. 118.7 means 18.7% above 2024."],
+  basis:["Departure-month basis","A ticket bought in August for a December flight counts as a December price, not an August one, because that is when the travel is consumed. This is what the UK's ONS does."],
+  geks:["GEKS–Jevons","A way of averaging prices that compares every month with every other month in the window, rather than just to the month before. Because it is symmetric, the error that builds up from chaining cancels out."],
+  coverage:["Coverage","How much of the data we planned to collect actually arrived. 98.2% means we got nearly everything; the rest is estimated and labelled as such."],
+  imputed:["Estimated","The share of the figure that had to be filled in because a fare was genuinely missing that day. We publish this number so you can judge the figure yourself."],
+  hash:["Reproducibility hash","A fingerprint of every original page we saved. Anyone can take our stored raw data, re-run the calculation, and check they get the same 118.7."],
+  sdmx:["SDMX-JSON","The international file format that statistics agencies, MoSPI, the RBI, the IMF, already use to exchange data. Publishing in it means no custom integration work."],
+  drift:["Chain drift","When you compare each day to the previous day and multiply it all together, a bouncing price never quite returns to where it started. Do that for a year and you have invented inflation that never happened."],
+  ons:["ONS","The UK's Office for National Statistics. It already runs a web-collected airfare index and published the method we build on, so we are not inventing statistics, we are applying theirs to India."],
+  rule135:["Rule 135(2), Aircraft Rules 1937","Indian law already obliges every airline to publish its fares on its website. So reading them is not scraping a secret, it is reading a mandated public disclosure."]
+};
+(function(){
+  var pop=$("#glossPop"),open=null;
+  function show(btn){
+    var g=GLOSS[btn.dataset.t];if(!g)return;
+    pop.innerHTML="<b>"+g[0]+"</b>"+g[1];pop.classList.add("on");open=btn;
+    var r=btn.getBoundingClientRect(),pw=Math.min(300,window.innerWidth-24);
+    pop.style.left=clamp(r.left,12,window.innerWidth-pw-12)+"px";
+    var below=r.bottom+9;
+    pop.style.top=(below+150>window.innerHeight?Math.max(12,r.top-pop.offsetHeight-9):below)+"px";
+  }
+  function hide(){pop.classList.remove("on");open=null}
+  document.addEventListener("mouseover",function(e){
+    var b=e.target.closest?e.target.closest(".gl"):null;if(b)show(b);
+  });
+  document.addEventListener("mouseout",function(e){
+    var b=e.target.closest?e.target.closest(".gl"):null;if(b&&b===open)hide();
+  });
+  document.addEventListener("focusin",function(e){
+    if(e.target.classList&&e.target.classList.contains("gl"))show(e.target);
+  });
+  document.addEventListener("focusout",hide);
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")hide()});
+})();
+
+
+/* ==================================================================== VIEWS */
+function switchView(id){
+  $$(".view").forEach(function(v){
+    var show=(v.id===id);
+    if(show&&v.hidden){          /* re-run the entrance easing on every switch */
+      v.style.animation="none";
+      v.hidden=false;
+      void v.offsetWidth;
+      v.style.animation="";
+    }else{
+      v.hidden=!show;
+    }
+  });
+  $$(".tab").forEach(function(t){t.setAttribute("aria-selected",String(t.dataset.v===id))});
+  if(id==="v-surface"){drawMap();renderSurface()}
+  if(id==="v-method")renderMethod();
+  if(id==="v-quality")renderQuality();
+}
+$$(".tab").forEach(function(t){t.addEventListener("click",function(){switchView(t.dataset.v)})});
+$$("#segAdj button").forEach(function(b){
+  b.addEventListener("click",function(){
+    $$("#segAdj button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+    renderIndex(b.dataset.adj);
+  });
+});
+$("#win").addEventListener("input",renderMethod);
+$("#oneCellBtn").addEventListener("click",function(){
+  showOneCell=!showOneCell;
+  this.setAttribute("aria-pressed",String(showOneCell));
+  this.lastChild.textContent=showOneCell?" Show all 80 prices":" Show what the manual check sees";
+  renderSurface();
+});
+var playT=null;
+$("#winPlay").addEventListener("click",function(){
+  if(playT){clearInterval(playT);playT=null;return}
+  var s=$("#win");s.value=1;renderMethod();
+  playT=setInterval(function(){
+    var v=+s.value+1;
+    if(v>25){clearInterval(playT);playT=null;return}
+    s.value=v;renderMethod();
+  },110);
+});
+
+/* map interaction */
+(function(){
+  var cv=$("#map"),tip=$("#mapTip");
+  cv.addEventListener("mousemove",function(ev){
+    var b=cv.getBoundingClientRect(),i=mapPick(ev.clientX-b.left,ev.clientY-b.top);
+    if(i!==mapHot){mapHot=i;drawMap()}
+    if(i>=0){
+      var r=ROUTES[i];
+      tip.innerHTML="<b>"+r.o+" – "+r.d+"</b> · "+r.w.toFixed(1)+"% of flyers · "+
+        (r.yoy>=0?"up ":"down ")+Math.abs(r.yoy).toFixed(1)+"% this year";
+      tip.classList.add("on");
+      tip.style.left=clamp(ev.clientX-b.left+14,0,b.width-250)+"px";
+      tip.style.top=(ev.clientY-b.top+14)+"px";
+      cv.style.cursor="pointer";
+    }else{tip.classList.remove("on");cv.style.cursor="default"}
+  });
+  cv.addEventListener("mouseleave",function(){tip.classList.remove("on");if(mapHot>=0){mapHot=-1;drawMap()}});
+  cv.addEventListener("click",function(ev){
+    var b=cv.getBoundingClientRect(),i=mapPick(ev.clientX-b.left,ev.clientY-b.top);
+    if(i>=0){mapSel=i;renderSurface()}
+  });
+})();
+
+/* ==================================================================== STORY MODE */
+var STORY=[
+  {v:"v-index",spot:"#cardHero",
+   t:"<b>This is the number.</b> It says air travel costs 18.7% more than in 2024. It feeds the inflation figure the Reserve Bank uses to set interest rates, so it has to be right."},
+  {v:"v-index",spot:"#cardHero",
+   t:"<b>Today it is measured by hand.</b> DGCA staff open airline websites and check <b>78 routes, once a month</b>. The figure reaches the CPI about two months late."},
+  {v:"v-surface",spot:"#cardSurface",after:function(){showOneCell=false;syncCellBtn();renderSurface()},
+   t:"<b>But a flight has no single price.</b> Here is one route on one day, <b>80 different prices</b>, depending on when you fly and how early you book."},
+  {v:"v-surface",spot:"#cardSurface",after:function(){showOneCell=true;syncCellBtn();renderSurface()},
+   t:"<b>A monthly manual check sees this much.</b> One box out of eighty. Everything greyed out is invisible to the current method, and it is <b>18% away</b> from the typical fare."},
+  {v:"v-method",spot:"#cardMethod",after:function(){$("#win").value=1;renderMethod()},
+   t:"<b>Collecting more prices is only half of it.</b> Both lines here use identical fares with <b>zero real inflation</b>. Simple daily averaging (dashed) has already invented 13 points of price rises."},
+  {v:"v-method",spot:"#cardMethod",after:function(){animateWin()},
+   t:"<b>The fix is the method.</b> Watch the slider: as we compare each month against every other month rather than just the previous one, the invented inflation collapses to nothing. That is the whole project."},
+  {v:"v-quality",spot:"#cardLanes",
+   t:"<b>And you can check us.</b> Three independent sources, two of them legally guaranteed. Every published number carries its coverage and a hash so anyone can re-derive it."}
+];
+var sIdx=-1;
+function syncCellBtn(){
+  var b=$("#oneCellBtn");
+  b.setAttribute("aria-pressed",String(showOneCell));
+  b.lastChild.textContent=showOneCell?" Show all 80 prices":" Show what the manual check sees";
+}
+function animateWin(){
+  var s=$("#win");s.value=1;renderMethod();
+  if(playT)clearInterval(playT);
+  playT=setInterval(function(){
+    var v=+s.value+1;
+    if(v>25){clearInterval(playT);playT=null;return}
+    s.value=v;renderMethod();
+  },100);
+}
+function clearSpot(){$$(".spot").forEach(function(n){n.classList.remove("spot")})}
+function storyGo(i){
+  if(i<0||i>=STORY.length)return;
+  sIdx=i;var st=STORY[i];
+  switchView(st.v);
+  clearSpot();
+  if(st.after)st.after();
+  var target=$(st.spot);
+  if(target){
+    target.classList.add("spot");
+    target.scrollIntoView({behavior:"smooth",block:"center"});
+  }
+  $("#storyStep").textContent="Step "+(i+1)+" of "+STORY.length;
+  $("#storyTxt").innerHTML=st.t;
+  $("#storyBack").disabled=(i===0);
+  $("#storyNext").textContent=(i===STORY.length-1)?"Finish":"Next";
+  $("#storyPips").innerHTML=STORY.map(function(_,k){
+    return '<i class="'+(k===i?"on":(k<i?"done":""))+'"></i>';
+  }).join("");
+}
+function storyOpen(){
+  $("#storyBar").classList.add("on");
+  document.body.classList.add("storyOn");
+  storyGo(0);
+}
+function storyClose(){
+  $("#storyBar").classList.remove("on");
+  document.body.classList.remove("storyOn");
+  clearSpot();sIdx=-1;
+  if(playT){clearInterval(playT);playT=null}
+}
+$("#storyStart").addEventListener("click",storyOpen);
+$("#storyExit").addEventListener("click",storyClose);
+$("#storyBack").addEventListener("click",function(){storyGo(sIdx-1)});
+$("#storyNext").addEventListener("click",function(){
+  if(sIdx===STORY.length-1)storyClose();else storyGo(sIdx+1);
+});
+document.addEventListener("keydown",function(e){
+  if(sIdx<0)return;
+  if(e.key==="ArrowRight"){e.preventDefault();if(sIdx<STORY.length-1)storyGo(sIdx+1)}
+  if(e.key==="ArrowLeft"){e.preventDefault();storyGo(sIdx-1)}
+  if(e.key==="Escape")storyClose();
+});
+
+/* ==================================================================== BOOT */
+function redrawAll(){
+  renderIndex($('#segAdj [aria-pressed="true"]').dataset.adj);
+  renderWaterfall();
+  if(!$("#v-surface").hidden){drawMap();renderSurface()}
+  if(!$("#v-method").hidden)renderMethod();
+  if(!$("#v-quality").hidden)renderQuality();
+}
+renderIndex("both");renderWaterfall();renderRouteTable();sdmxBlock();
+tickClock();setInterval(tickClock,1000);
+
+var rt;
+window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(redrawAll,160)});
+window.matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){setTimeout(redrawAll,60)});
+
+/* ==================================================================== 3D
+   Two WebGL pieces, both degrade gracefully when WebGL is unavailable:
+     1. a globe carrying the live route network   (hero)
+     2. the price surface as orbitable terrain    (why one price isn't enough)
+   Nothing is loaded from disk or network, all geometry is generated in code,
+   so the whole thing still runs with the network unplugged.               */
+var HAS_GL=(function(){
+  if(typeof THREE==="undefined")return false;
+  try{
+    var c=document.createElement("canvas");
+    return !!(c.getContext("webgl")||c.getContext("experimental-webgl"));
+  }catch(e){return false}
+})();
+
+function ll2v(lat,lon,r){
+  var p=(90-lat)*Math.PI/180,t=(lon+180)*Math.PI/180;
+  return new THREE.Vector3(-r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t));
+}
+
+/* ==================================================================== GLOBE
+   Canvas-2D orthographic globe. The layered lighting approach, starfield,
+   atmosphere halo, off-centre ocean gradient, horizon-culled landmasses,
+   specular highlight, rim glow, is adapted from the WorldPolicy-Env globe
+   (github.com/Krishpotanwar/WorldPolicy-Env, globe.jsx, Apache-2.0), ported
+   from React to vanilla, recoloured to the VIMAAN palette, and re-pointed at
+   India's own boundary. World data is inlined, so it needs no network.
+   Canvas 2D means it also needs no GPU, it renders on any machine.        */
+
+function ortho(lat,lon,cx,cy,R,cLon,cLat){
+  var p=lat*Math.PI/180,l=(lon-cLon)*Math.PI/180,p0=cLat*Math.PI/180;
+  var cosc=Math.sin(p0)*Math.sin(p)+Math.cos(p0)*Math.cos(p)*Math.cos(l);
+  return {
+    x:cx+R*Math.cos(p)*Math.sin(l),
+    y:cy-R*(Math.cos(p0)*Math.sin(p)-Math.sin(p0)*Math.cos(p)*Math.cos(l)),
+    z:cosc
+  };
+}
+
+var globeState={lon:80,lat:19,vel:0.055,drag:false};
+
+function initGlobe(){
+  var wrap=document.getElementById("globeWrap");
+  if(!wrap)return;
+  var cv=document.createElement("canvas");
+  cv.setAttribute("aria-hidden","true");
+  cv.style.width="100%";cv.style.height="100%";cv.style.display="block";
+  wrap.appendChild(cv);
+  var ctx=cv.getContext("2d");
+  var reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+  /* ---- drag to spin ---- */
+  var px=0,py=0,hinted=false;
+  function down(e){
+    globeState.drag=true;var c=e.touches?e.touches[0]:e;px=c.clientX;py=c.clientY;
+    if(!hinted){hinted=true;var h=document.getElementById("globeHint");if(h)h.style.opacity=0}
+  }
+  function move(e){
+    if(!globeState.drag)return;
+    var c=e.touches?e.touches[0]:e;
+    globeState.lon-=(c.clientX-px)*0.34;
+    globeState.lat=clamp(globeState.lat+(c.clientY-py)*0.30,-72,72);
+    globeState.vel=-(c.clientX-px)*0.012;
+    px=c.clientX;py=c.clientY;
+    if(e.cancelable)e.preventDefault();
+  }
+  function up(){
+    globeState.drag=false;
+    if(Math.abs(globeState.vel)<0.02)globeState.vel=0.055;
+  }
+  wrap.addEventListener("mousedown",down);
+  wrap.addEventListener("touchstart",down,{passive:true});
+  window.addEventListener("mousemove",move);
+  wrap.addEventListener("touchmove",move,{passive:false});
+  window.addEventListener("mouseup",up);
+  wrap.addEventListener("touchend",up);
+
+  var flyT=0;
+
+  function projRing(ring,cx,cy,R,cLon,cLat){
+    /* split a ring wherever it crosses the horizon */
+    var segs=[],cur=[],i;
+    for(i=0;i<ring.length;i++){
+      var p=ortho(ring[i][1],ring[i][0],cx,cy,R,cLon,cLat);
+      if(p.z>-0.02)cur.push(p);
+      else if(cur.length){segs.push(cur);cur=[]}
+    }
+    if(cur.length)segs.push(cur);
+    return segs;
+  }
+
+  function render(){
+    if(!globeState.drag&&!reduce)globeState.lon+=globeState.vel;
+    if(!globeState.drag)globeState.vel+=(0.055-globeState.vel)*0.02;
+
+    var dpr=Math.min(2,window.devicePixelRatio||1);
+    var rect=wrap.getBoundingClientRect();
+    var W=rect.width||520,H=rect.height||440;
+    if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+    else if(cv.height!==Math.round(H*dpr)){cv.height=Math.round(H*dpr)}
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+
+    var cx=W/2,cy=H/2,R=Math.min(W,H)*0.415;
+    var cLon=globeState.lon,cLat=globeState.lat;
+    var now=Date.now();
+
+    /* ---- starfield ---- */
+    /* the starfield was decoration; it fought the calmer ground */
+
+    /* ---- atmosphere halo ---- */
+    var INK=css("--ink"),RULE=css("--rule"),RS=css("--rule-strong");
+    var MUT=css("--muted"),SUR=css("--surface"),RAI=css("--raised");
+
+    /* ---- ocean, lit from upper-left ---- */
+    var oG=ctx.createRadialGradient(cx-R*0.30,cy-R*0.30,R*0.04,cx+R*0.10,cy+R*0.12,R*1.08);
+    oG.addColorStop(0,SUR);oG.addColorStop(0.46,RAI);
+    oG.addColorStop(0.82,RS);oG.addColorStop(1,MUT);
+    ctx.beginPath();ctx.arc(cx,cy,R,0,6.2832);ctx.fillStyle=oG;ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();ctx.arc(cx,cy,R,0,6.2832);ctx.clip();
+
+    /* ---- graticule ---- */
+    ctx.strokeStyle=RULE;ctx.lineWidth=0.5;
+    var lat,lon,st,p;
+    for(lat=-60;lat<=60;lat+=30){
+      ctx.beginPath();st=false;
+      for(lon=-180;lon<=180;lon+=5){
+        p=ortho(lat,lon,cx,cy,R,cLon,cLat);
+        if(p.z<0){st=false;continue}
+        st?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y);st=true;
+      }
+      ctx.stroke();
+    }
+    for(lon=-180;lon<180;lon+=30){
+      ctx.beginPath();st=false;
+      for(lat=-90;lat<=90;lat+=5){
+        p=ortho(lat,lon,cx,cy,R,cLon,cLat);
+        if(p.z<0){st=false;continue}
+        st?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y);st=true;
+      }
+      ctx.stroke();
+    }
+
+    /* ---- rest of the world, recessive ---- */
+    ctx.lineWidth=0.6;
+    WORLD.forEach(function(ring){
+      projRing(ring,cx,cy,R,cLon,cLat).forEach(function(seg){
+        if(seg.length<3)return;
+        ctx.beginPath();
+        seg.forEach(function(q,i){i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});
+        ctx.closePath();
+        ctx.fillStyle=RS;ctx.globalAlpha=0.55;ctx.fill();ctx.globalAlpha=1;
+        ctx.strokeStyle=MUT;ctx.globalAlpha=0.35;ctx.stroke();ctx.globalAlpha=1;
+      });
+    });
+
+    /* ---- India, from its own official boundary ---- */
+    function paintIndia(ring,lw,fill){
+      projRing(ring,cx,cy,R,cLon,cLat).forEach(function(seg){
+        if(seg.length<3)return;
+        ctx.beginPath();
+        seg.forEach(function(q,i){i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});
+        ctx.closePath();
+        if(fill){ctx.fillStyle=INK;ctx.globalAlpha=0.20;ctx.fill();ctx.globalAlpha=1}
+        ctx.strokeStyle=INK;ctx.lineWidth=lw;ctx.stroke();
+      });
+    }
+    paintIndia(INDIA,1.8,true);
+    INDIA_ISLES.forEach(function(r){paintIndia(r,0.9,true)});
+
+    /* ---- route arcs, glow under a bright core ---- */
+    if(!reduce)flyT+=0.0045;
+    var s1=css("--s1"),s2=css("--s2");
+    ROUTES.forEach(function(r,i){
+      var a=ortho(AP[r.o][1],AP[r.o][0],cx,cy,R,cLon,cLat),
+          b=ortho(AP[r.d][1],AP[r.d][0],cx,cy,R,cLon,cLat);
+      if(a.z<0.02||b.z<0.02)return;
+      var mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      var dx=b.x-a.x,dy=b.y-a.y;
+      var qx=mx-dy*0.20,qy=my+dx*0.20;
+      var col=r.yoy>=0?s2:s1;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo(qx,qy,b.x,b.y);
+      ctx.strokeStyle=col;ctx.globalAlpha=0.13;ctx.lineWidth=Math.max(3,r.w*0.62);ctx.stroke();
+      ctx.globalAlpha=0.92;ctx.lineWidth=Math.max(1,r.w*0.16);ctx.stroke();
+      ctx.globalAlpha=1;
+      /* travelling pulse */
+      var t=(flyT+i*0.13)%1,u=1-t;
+      var fx=u*u*a.x+2*u*t*qx+t*t*b.x, fy=u*u*a.y+2*u*t*qy+t*t*b.y;
+      ctx.beginPath();ctx.arc(fx,fy,2.2,0,6.2832);
+      ctx.fillStyle=col;ctx.fill();
+    });
+
+    /* ---- airports ---- */
+    var seen={};
+    ROUTES.forEach(function(r){[r.o,r.d].forEach(function(k){
+      if(seen[k])return;seen[k]=1;
+      var q=ortho(AP[k][1],AP[k][0],cx,cy,R,cLon,cLat);
+      if(q.z<0.02)return;
+      ctx.beginPath();ctx.arc(q.x,q.y,2.3,0,6.2832);
+      ctx.fillStyle=INK;ctx.fill();
+    })});
+
+    ctx.restore();
+
+    /* ---- specular ---- */
+    ctx.beginPath();ctx.arc(cx,cy,R,0,6.2832);
+    ctx.strokeStyle=MUT;ctx.globalAlpha=0.65;ctx.lineWidth=1.1;ctx.stroke();
+    ctx.globalAlpha=1;
+
+    requestAnimationFrame(render);
+  }
+  render();
+}
+
+/* ------------------------------------------------------- PRICE SURFACE */
+var surf=null;
+function buildSurf3d(grid){
+  var host=document.getElementById("surf3d");
+  if(!host||!HAS_GL)return;
+  var W=host.clientWidth||600,H=host.clientHeight||330;
+  if(surf){cancelAnimationFrame(surf.raf);if(surf.ren.domElement.parentNode)host.removeChild(surf.ren.domElement);surf=null}
+
+  var rows=grid.length,cols=grid[0].length,flat=[];
+  grid.forEach(function(r){flat=flat.concat(r)});
+  var mn=Math.min.apply(null,flat),mx=Math.max.apply(null,flat);
+
+  var sc=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(42,W/H,0.1,100);
+  var ren=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  ren.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+  ren.setSize(W,H);
+  host.appendChild(ren.domElement);
+
+  var grp=new THREE.Group();sc.add(grp);
+  var geo=new THREE.PlaneGeometry(3.2,2.4,cols-1,rows-1);
+  var pos=geo.attributes.position,colr=[];
+  var ramp=["--q1","--q2","--q3","--q4","--q5","--q6","--q7","--q8","--q9"]
+    .map(function(v){return new THREE.Color(css(v))});
+  for(var i=0;i<pos.count;i++){
+    var r=Math.floor(i/cols),c=i%cols;
+    var v=grid[Math.min(r,rows-1)][Math.min(c,cols-1)];
+    var n=(v-mn)/((mx-mn)||1);
+    pos.setZ(i,n*1.15);
+    var col=ramp[clamp(Math.floor(n*ramp.length),0,ramp.length-1)];
+    colr.push(col.r,col.g,col.b);
+  }
+  geo.setAttribute("color",new THREE.Float32BufferAttribute(colr,3));
+  geo.computeVertexNormals();
+  grp.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide})));
+  grp.add(new THREE.LineSegments(new THREE.WireframeGeometry(geo),
+    new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.17})));
+
+  var pi=5*cols+8;
+  var mkr=new THREE.Color(css("--s2"));
+  var pin=new THREE.Mesh(new THREE.SphereGeometry(0.062,12,10),new THREE.MeshBasicMaterial({color:mkr}));
+  pin.position.set(pos.getX(pi),pos.getY(pi),pos.getZ(pi)+0.10);
+  grp.add(pin);
+  grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(pos.getX(pi),pos.getY(pi),0),
+    new THREE.Vector3(pos.getX(pi),pos.getY(pi),pos.getZ(pi)+0.10)]),
+    new THREE.LineBasicMaterial({color:mkr})));
+
+  grp.rotation.x=-1.06;grp.rotation.z=0.30;
+  cam.position.set(0,-0.30,4.5);
+
+  var drag=false,px=0,py=0,zoom=4.5;
+  var reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  function down(e){drag=true;var c=e.touches?e.touches[0]:e;px=c.clientX;py=c.clientY}
+  function move(e){
+    if(!drag)return;
+    var c=e.touches?e.touches[0]:e;
+    grp.rotation.z+=(c.clientX-px)*0.006;
+    grp.rotation.x=clamp(grp.rotation.x+(c.clientY-py)*0.005,-1.55,-0.18);
+    px=c.clientX;py=c.clientY;
+    if(e.cancelable)e.preventDefault();
+  }
+  function up(){drag=false}
+  host.addEventListener("mousedown",down);
+  host.addEventListener("touchstart",down,{passive:true});
+  window.addEventListener("mousemove",move);
+  host.addEventListener("touchmove",move,{passive:false});
+  window.addEventListener("mouseup",up);
+  host.addEventListener("touchend",up);
+  host.addEventListener("wheel",function(e){
+    zoom=clamp(zoom+(e.deltaY>0?0.3:-0.3),3.1,7.4);
+    cam.position.z=zoom;e.preventDefault();
+  },{passive:false});
+
+  surf={ren:ren,cam:cam,raf:0};
+  (function loop(){
+    surf.raf=requestAnimationFrame(loop);
+    if(!drag&&!reduce)grp.rotation.z+=0.0022;
+    ren.render(sc,cam);
+  })();
+}
+
+/* --------------------------------------------------------- WIRING */
+(function(){
+  var seg=document.getElementById("surfMode");
+  if(!seg)return;
+  if(!HAS_GL){seg.style.display="none";return}
+  $$("#surfMode button").forEach(function(b){
+    b.addEventListener("click",function(){
+      $$("#surfMode button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+      var three=(b.dataset.m==="3d");
+      document.getElementById("surf3d").hidden=!three;
+      document.getElementById("chSurface").hidden=three;
+      if(three)buildSurf3d(surfaceFor(ROUTES[mapSel]));
+    });
+  });
+})();
+
+document.getElementById("heroGuide").addEventListener("click",storyOpen);
+document.getElementById("heroSurface").addEventListener("click",function(){
+  switchView("v-surface");
+  document.getElementById("v-surface").scrollIntoView({behavior:"smooth",block:"start"});
+});
+initGlobe();
+
+
+/* ==================================================================== MOTION
+   Animation layer built on framer-motion's vanilla DOM API (the `Motion`
+   global from framer-motion/dist/dom.js, inlined above so it survives with
+   the network unplugged).
+
+   Everything here is gated on prefers-reduced-motion, and every animation is
+   tied to something happening — an entrance, a value changing, a panel coming
+   into view. Nothing loops or decorates.                                    */
+(function(){
+  if(!window.Motion){return}
+  var A=window.Motion.animate, ST=window.Motion.stagger,
+      IV=window.Motion.inView, HV=window.Motion.hover, PR=window.Motion.press;
+
+  var REDUCE=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  var EASE=[0.22,0.61,0.20,1];
+  var SPRING={type:"spring",stiffness:240,damping:26};
+
+  /* if motion is unwanted, make sure nothing is left mid-animation */
+  if(REDUCE){
+    document.documentElement.setAttribute("data-motion","off");
+    return;
+  }
+
+  function all(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
+
+  /* ---------------------------------------------------------------- 1. numbers
+     A figure that counts to its value reads as measured rather than printed. */
+  function countUp(node,to,opt){
+    opt=opt||{};
+    var dp=opt.dp==null?0:opt.dp;
+    var pre=opt.pre||"", suf=opt.suf||"";
+    A(opt.from==null?0:opt.from, to, {
+      duration:opt.duration||1.15, ease:EASE,
+      onUpdate:function(v){
+        node.textContent = pre + (dp ? v.toFixed(dp)
+          : Math.round(v).toLocaleString("en-IN")) + suf;
+      }
+    });
+  }
+
+  /* "517" -> {n:517}, "151k" -> {n:151,suf:"k"}, "118.7" -> {n:118.7,dp:1} */
+  function parseFigure(t){
+    var m=String(t).trim().match(/^([^0-9.-]*)(-?[\d,]+(?:\.\d+)?)(.*)$/);
+    if(!m)return null;
+    var raw=m[2].replace(/,/g,"");
+    if(!raw||isNaN(parseFloat(raw)))return null;
+    return {pre:m[1],n:parseFloat(raw),suf:m[3],dp:(raw.split(".")[1]||"").length};
+  }
+
+  function animateFigures(root,delay){
+    all(".hero-fig-i .v, .stat .v, .hero-fig",root).forEach(function(n,i){
+      if(n.dataset.counted)return;
+      var f=parseFigure(n.textContent);
+      if(!f)return;
+      n.dataset.counted="1";
+      setTimeout(function(){
+        /* always from zero: starting a figure part-way up implies a
+           baseline it does not have */
+        countUp(n,f.n,{dp:f.dp,pre:f.pre,suf:f.suf,from:0,duration:0.95});
+      },(delay||0)+i*55);
+    });
+  }
+
+  /* ------------------------------------------------------- 2. chart reveals
+     One wipe on the container beats animating every mark: it keeps dashed
+     series and axis text intact, and it reads as the chart being drawn. */
+  function wipe(host,delay){
+    if(!host||host.dataset.wiped)return;
+    host.dataset.wiped="1";
+    host.style.clipPath="inset(0 100% 0 0)";
+    A(host,{clipPath:["inset(0 100% 0 0)","inset(0 -1% 0 0)"]},
+      {duration:0.78,delay:(delay||0)/1000,ease:EASE});
+  }
+
+  /* heatmap cells earn a stagger — the grid is the point of those charts */
+  function cells(host,delay){
+    if(!host||host.dataset.celled)return;
+    var rects=all("svg rect",host).filter(function(r){
+      return r.getAttribute("fill")!=="transparent";
+    });
+    if(rects.length<8||rects.length>420)return;
+    host.dataset.celled="1";
+    A(rects,{opacity:[0,1]},{
+      duration:0.40,ease:EASE,
+      delay:ST(0.006,{startDelay:(delay||0)/1000})
+    });
+  }
+
+  function revealCharts(root,delay){
+    all(".chart",root).forEach(function(c,i){
+      var isGrid=(c.id==="chSurface"||c.id==="chCover");
+      if(isGrid)cells(c,(delay||0)+i*70); else wipe(c,(delay||0)+i*70);
+    });
+  }
+
+  /* --------------------------------------------------------- 3. hero entrance */
+  function heroIntro(){
+    var copy=document.querySelector(".hero-copy");
+    if(copy){
+      var bits=[".eyebrow","h1",".hero-copy > p",".hero-figs",".hero-cta"]
+        .map(function(s){return copy.querySelector(s)}).filter(Boolean);
+      bits.forEach(function(el){el.style.opacity=0});
+      A(bits,{opacity:[0,1],y:[14,0]},
+        {duration:0.62,ease:EASE,delay:ST(0.085,{startDelay:0.06})});
+    }
+    var gw=document.getElementById("globeWrap");
+    if(gw){
+      A(gw,{opacity:[0,1],scale:[0.93,1]},{duration:1.0,ease:EASE,delay:0.18});
+    }
+  }
+
+  /* ------------------------------------------------------- 4. panels on entry */
+  function panelsIn(root,stag){
+    var cards=all(".card, .stats, .hero",root);
+    if(!cards.length)return;
+    A(cards,{opacity:[0,1],y:[12,0]},
+      {duration:0.5,ease:EASE,delay:ST(stag==null?0.055:stag)});
+  }
+
+  /* scroll reveal for anything below the fold, once each */
+  function armScrollReveal(){
+    all(".card, .stats").forEach(function(c){
+      if(c.getBoundingClientRect().top < window.innerHeight) return;
+      c.style.opacity=0;
+      IV(c,function(){
+        A(c,{opacity:[0,1],y:[16,0]},{duration:0.55,ease:EASE});
+        revealCharts(c,90);
+        animateFigures(c,120);
+      },{amount:0.15});
+    });
+  }
+
+  /* --------------------------------------------------------- 5. table rows */
+  function rowsIn(){
+    var rows=all("#routeTbl tbody tr");
+    if(!rows.length||rows[0].dataset.rowed)return;
+    rows.forEach(function(r){r.dataset.rowed="1"});
+    A(rows,{opacity:[0,1],x:[-8,0]},
+      {duration:0.34,ease:EASE,delay:ST(0.022)});
+  }
+
+  /* ------------------------------------------------- 6. hover and press feel */
+  function armPointer(){
+    all(".card").forEach(function(c){
+      HV(c,function(){
+        A(c,{y:-2},SPRING);
+        return function(){A(c,{y:0},SPRING)};
+      });
+    });
+    all(".btn, .btn-gold, .btn-ghost, .tab").forEach(function(b){
+      PR(b,function(){
+        A(b,{scale:0.97},{duration:0.09,ease:EASE});
+        return function(){A(b,{scale:1},SPRING)};
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------ 7. story mode */
+  function armStory(){
+    var bar=document.getElementById("storyBar");
+    if(!bar)return;
+    var mo=new MutationObserver(function(){
+      if(!bar.classList.contains("on"))return;
+      A(bar,{opacity:[0,1],y:[26,0]},{duration:0.44,ease:EASE});
+      var t=document.getElementById("storyTxt");
+      if(t)A(t,{opacity:[0,1],y:[6,0]},{duration:0.34,ease:EASE,delay:0.08});
+      var spot=document.querySelector(".spot");
+      if(spot)A(spot,{scale:[0.995,1]},SPRING);
+    });
+    mo.observe(bar,{attributes:true,attributeFilter:["class"]});
+
+    /* each step: re-announce the caption and pulse the highlighted panel */
+    var txt=document.getElementById("storyTxt");
+    if(txt){
+      new MutationObserver(function(){
+        A(txt,{opacity:[0,1],y:[5,0]},{duration:0.3,ease:EASE});
+        var sp=document.querySelector(".spot");
+        if(sp)A(sp,{scale:[0.99,1]},SPRING);
+      }).observe(txt,{childList:true});
+    }
+  }
+
+  /* --------------------------------------------------- 8. view switch hookup
+     switchView already un-hides the panel; wrap it so the new view's panels,
+     charts and figures animate in rather than appearing all at once. */
+  function armViews(){
+    if(typeof window.switchView!=="function")return;
+    var orig=window.switchView;
+    window.switchView=function(id){
+      orig(id);
+      var v=document.getElementById(id);
+      if(!v)return;
+      all(".card, .stats",v).forEach(function(c){
+        c.style.opacity="";c.style.transform="";
+      });
+      all(".chart",v).forEach(function(c){
+        delete c.dataset.wiped; delete c.dataset.celled;
+        c.style.clipPath="";
+      });
+      panelsIn(v,0.05);
+      revealCharts(v,140);
+      if(id==="v-surface")rowsIn();
+    };
+  }
+
+  /* --------------------------------------------------------------- 9. slider
+     Redrawing on every input event would fight the pointer, so the method
+     chart only wipes when the drag settles. */
+  function armSlider(){
+    var sl=document.getElementById("win");
+    if(!sl)return;
+    var t=null;
+    sl.addEventListener("input",function(){
+      clearTimeout(t);
+      t=setTimeout(function(){
+        var c=document.getElementById("chMethod");
+        if(c){delete c.dataset.wiped;c.style.clipPath="";wipe(c,0)}
+      },220);
+    });
+  }
+
+  /* ------------------------------------------------------------------- boot */
+  function boot(){
+    heroIntro();
+    panelsIn(document.getElementById("v-index"),0.06);
+    revealCharts(document.getElementById("v-index"),260);
+    animateFigures(document,300);
+    rowsIn();
+    armScrollReveal();
+    armPointer();
+    armStory();
+    armViews();
+    armSlider();
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",function(){setTimeout(boot,40)});
+  }else{
+    setTimeout(boot,40);
+  }
+})();
+
+</script>

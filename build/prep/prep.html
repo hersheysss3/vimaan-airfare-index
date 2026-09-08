@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>VIMAAN — Presentation Run Sheet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  @page { size: A4 portrait; margin: 12mm 12mm 14mm 12mm; }
+
+  :root{
+    --paper:#FFFFFF;
+    --panel:#F3F6F9;
+    --panel-2:#E9EFF5;
+    --ink:#10171F;
+    --muted:#4E5A67;
+    --faint:#7E8D9B;
+    --rule:#D5DEE6;
+    --rule-strong:#B9C7D4;
+    --navy:#1F497D;
+    --navy-soft:#E6EEF7;
+    --amber:#A05A00;
+    --amber-soft:#FCF2E1;
+    --green:#136437;
+    --green-soft:#E3F0E8;
+    --red:#9E2419;
+    --red-soft:#FBEAE8;
+    --f-display:"Archivo","Arial Narrow",Arial,sans-serif;
+    --f-body:"Source Sans 3","Segoe UI",Arial,sans-serif;
+    --f-mono:"IBM Plex Mono",Consolas,"Courier New",monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--f-body);
+    font-size:9.6pt;
+    line-height:1.42;
+    color:var(--ink);
+    background:var(--paper);
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  h1,h2,h3,h4{font-family:var(--f-display);margin:0;letter-spacing:-.01em}
+  p{margin:0}
+  img{max-width:100%;display:block}
+
+  .page{ page-break-after:always; break-after:page; }
+  .page:last-child{ page-break-after:auto; break-after:auto; }
+  .flow{ page-break-before:always; break-before:page; }
+
+  .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+  .eyebrow{
+    font-family:var(--f-mono);font-size:7pt;font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+  }
+
+  /* ---------- cover ---------- */
+  .cover-head{border-bottom:2.5pt solid var(--ink);padding-bottom:7pt;margin-bottom:12pt}
+  .cover-head h1{font-size:30pt;font-weight:700;line-height:1.02}
+  .cover-head h1 span{color:var(--navy)}
+  .cover-head .sub{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:5pt;font-family:var(--f-mono);font-size:8pt;color:var(--muted);
+  }
+  .cover-head .sub b{color:var(--ink)}
+  .lede{color:var(--muted);font-size:10pt;max-width:150mm;margin-bottom:11pt}
+
+  h2.sec{
+    font-size:12pt;font-weight:700;border-bottom:1.2pt solid var(--ink);
+    padding-bottom:3pt;margin:0 0 8pt;display:flex;justify-content:space-between;align-items:baseline;
+  }
+  h2.sec span{font-family:var(--f-mono);font-size:7.5pt;font-weight:500;color:var(--faint);letter-spacing:.12em}
+
+  /* ---------- timing table ---------- */
+  table.run{width:100%;border-collapse:collapse;margin-bottom:14pt}
+  table.run th{
+    font-family:var(--f-mono);font-size:7pt;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--faint);text-align:left;
+    border-bottom:1pt solid var(--rule-strong);padding:0 6pt 4pt 0;
+  }
+  table.run td{padding:4pt 6pt 4pt 0;border-bottom:.6pt solid var(--rule);vertical-align:top}
+  table.run td.n{font-family:var(--f-display);font-size:12pt;font-weight:700;color:var(--navy);width:22pt}
+  table.run td.clk{font-family:var(--f-mono);font-size:8.5pt;font-weight:600;white-space:nowrap;width:66pt}
+  table.run td.dur{font-family:var(--f-mono);font-size:8.5pt;color:var(--amber);font-weight:600;width:34pt}
+  table.run td.who{white-space:nowrap;width:96pt}
+  table.run td.who b{display:block;font-size:9.5pt}
+  table.run td.who span{font-family:var(--f-mono);font-size:7pt;color:var(--faint);letter-spacing:.08em;text-transform:uppercase}
+  table.run td.slide b{display:block}
+  table.run td.slide span{color:var(--muted);font-size:9pt}
+  table.run tr.total td{border-bottom:0;padding-top:7pt;font-weight:600}
+  table.run tr.total td.clk{color:var(--navy)}
+
+  /* ---------- proportional bar ---------- */
+  .bar{display:flex;width:100%;height:26pt;border:1pt solid var(--rule-strong);margin-bottom:4pt}
+  .bar .b{
+    border-right:.6pt solid #fff;display:flex;align-items:center;justify-content:center;
+    font-family:var(--f-mono);font-size:7.5pt;font-weight:600;color:#fff;
+  }
+  .bar .b:last-child{border-right:0}
+  .bar .g{background:var(--rule-strong)}
+  .bar .b1{background:#26527F}.bar .b2{background:#1F497D}.bar .b3{background:#2E5F91}
+  .bar .b4{background:#3D6E9E}.bar .b5{background:#4C7DAB}.bar .b6{background:#5B8CB8}
+  .bar-legend{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:7pt;color:var(--faint);margin-bottom:14pt}
+
+  /* ---------- protocol grid ---------- */
+  .rules{display:grid;grid-template-columns:1fr 1fr;gap:7pt}
+  .rule{border:.8pt solid var(--rule);background:var(--panel);padding:6pt 8pt;break-inside:avoid}
+  .rule .n{font-family:var(--f-mono);font-size:7pt;font-weight:600;color:var(--amber);letter-spacing:.12em}
+  .rule h4{font-size:9.5pt;font-weight:600;margin:1pt 0 2pt}
+  .rule p{font-size:8.3pt;color:var(--muted)}
+
+  /* ---------- speaker page ---------- */
+  .sp-head{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:10pt;
+    border-bottom:2pt solid var(--navy);padding-bottom:5pt;margin-bottom:8pt;
+  }
+  .sp-id{display:flex;align-items:baseline;gap:8pt}
+  .sp-num{font-family:var(--f-display);font-size:26pt;font-weight:700;line-height:.9;color:var(--navy)}
+  .sp-titles h3{font-size:13pt;font-weight:700;line-height:1.15}
+  .sp-titles .who{font-family:var(--f-mono);font-size:7.5pt;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:2pt}
+  .sp-titles .who b{color:var(--ink);background:var(--panel-2);padding:1pt 4pt;letter-spacing:.06em}
+  .sp-time{text-align:right;white-space:nowrap}
+  .sp-time .clk{font-family:var(--f-mono);font-size:13pt;font-weight:600;letter-spacing:-.02em}
+  .sp-time .meta{font-family:var(--f-mono);font-size:7.5pt;color:var(--amber);font-weight:600}
+
+  .shot{border:1pt solid var(--rule-strong);margin-bottom:9pt}
+  .shot img{width:100%}
+
+  .say{
+    background:var(--navy-soft);border-left:3pt solid var(--navy);
+    padding:6pt 10pt;margin-bottom:8pt;break-inside:avoid;
+  }
+  .say .tag{
+    font-family:var(--f-mono);font-size:6.8pt;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--navy);display:block;margin-bottom:3pt;
+  }
+  .say p{font-size:11pt;line-height:1.36}
+  .say b{font-weight:600}
+
+  ol.beats{margin:0 0 9pt;padding:0;list-style:none;counter-reset:beat}
+  ol.beats li{
+    counter-increment:beat;display:grid;grid-template-columns:16pt 1fr;gap:6pt;
+    padding:3.1pt 0;border-bottom:.5pt solid var(--rule);break-inside:avoid;
+  }
+  ol.beats li:last-child{border-bottom:0}
+  ol.beats li::before{
+    content:counter(beat);font-family:var(--f-mono);font-size:7.5pt;font-weight:600;
+    color:var(--faint);padding-top:1pt;
+  }
+  ol.beats li > .cue{
+    grid-column:2;
+    font-family:var(--f-mono);font-size:7pt;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--amber);
+  }
+  ol.beats li > .txt{grid-column:2;font-size:9.4pt}
+  ol.beats .txt b{font-weight:600}
+
+  .notes{display:flex;flex-direction:column;gap:4pt;break-inside:avoid}
+  .note{display:grid;grid-template-columns:52pt 1fr;gap:7pt;padding:4pt 7pt;font-size:9pt}
+  .note .k{font-family:var(--f-mono);font-size:6.8pt;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding-top:1.5pt}
+  .note.land{background:var(--amber-soft)}
+  .note.land .k{color:var(--amber)}
+  .note.land b{color:var(--amber);font-weight:600}
+  .note.hand{background:var(--green-soft)}
+  .note.hand .k{color:var(--green)}
+  .note.hand .v{font-style:italic}
+  .note.hand .v b{font-style:normal;color:var(--green);font-weight:600}
+  .note.avoid{background:var(--red-soft)}
+  .note.avoid .k{color:var(--red)}
+  .note.avoid .v{color:var(--muted)}
+
+  /* ---------- q bank ---------- */
+  .tier-bar{
+    background:var(--ink);color:#fff;padding:5pt 9pt;margin:0 0 8pt;
+    display:flex;justify-content:space-between;align-items:baseline;break-after:avoid;
+  }
+  .tier-bar h3{font-size:10.5pt;font-weight:600;color:#fff}
+  .tier-bar span{font-family:var(--f-mono);font-size:7pt;letter-spacing:.14em;opacity:.75}
+
+  .qa{
+    display:grid;grid-template-columns:16pt 1fr 46pt;gap:6pt;
+    padding:5pt 0 6pt;border-bottom:.6pt solid var(--rule);break-inside:avoid;
+  }
+  .qa .qn{font-family:var(--f-mono);font-size:7.5pt;font-weight:600;color:var(--faint);padding-top:1pt}
+  .qa .own{
+    font-family:var(--f-mono);font-size:6.4pt;font-weight:600;color:var(--navy);
+    background:var(--navy-soft);border:.6pt solid var(--rule);text-align:center;
+    padding:1pt 1pt;height:11pt;line-height:9pt;letter-spacing:0;
+  }
+  .qa .q{font-weight:600;font-size:9.6pt;margin-bottom:2pt}
+  .qa .a{font-size:9pt;color:var(--muted)}
+  .qa .a b{color:var(--ink);font-weight:600}
+  .qa .a code{font-family:var(--f-mono);font-size:8.2pt;background:var(--panel-2);padding:0 2pt}
+
+  /* ---------- close ---------- */
+  .final{background:var(--navy);color:#fff;padding:12pt 14pt;break-inside:avoid}
+  .final h3{font-size:11pt;color:#fff;margin-bottom:5pt}
+  .final ul{margin:0;padding-left:14pt}
+  .final li{margin-bottom:3pt;font-size:9.6pt}
+  .final .kicker{margin-top:7pt;padding-top:7pt;border-top:.8pt solid rgba(255,255,255,.3);font-size:10pt}
+
+  .cheat{border:1.2pt solid var(--ink);padding:10pt 12pt;margin-top:12pt;break-inside:avoid}
+  .cheat h3{font-size:10.5pt;margin-bottom:6pt}
+  .cheat table{width:100%;border-collapse:collapse}
+  .cheat td{padding:3pt 6pt 3pt 0;border-bottom:.5pt solid var(--rule);font-size:9.2pt;vertical-align:top}
+  .cheat td.k{font-family:var(--f-mono);font-size:9.5pt;font-weight:600;color:var(--amber);white-space:nowrap;width:74pt}
+  .cheat tr:last-child td{border-bottom:0}
+
+  .foot{
+    margin-top:10pt;padding-top:5pt;border-top:.6pt solid var(--rule);
+    font-family:var(--f-mono);font-size:7pt;color:var(--faint);
+    display:flex;justify-content:space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 — COVER + TIMING ================= -->
+<section class="page">
+  <div class="cover-head">
+    <h1>VIMAAN <span>Run Sheet</span></h1>
+    <div class="sub">
+      <span><b>SIH26056</b> · Bharat Bytes · Real-time Airfare Price Index</span>
+      <span><b>7:00</b> pitch &nbsp;·&nbsp; <b>3:00</b> viva &nbsp;·&nbsp; <b>6</b> speakers</span>
+    </div>
+  </div>
+
+  <p class="lede">One slide per person, in build order, so everyone speaks to what they own. Times are hard — the clock is the enemy, not the judges. Rehearse three times against a timer before you sleep.</p>
+
+  <h2 class="sec">The seven minutes <span>390s SPEAKING + 5s × 6 HANDOFFS</span></h2>
+
+  <div class="bar">
+    <div class="b b1" style="flex:35">01</div><div class="b g" style="flex:5"></div>
+    <div class="b b2" style="flex:85">02</div><div class="b g" style="flex:5"></div>
+    <div class="b b3" style="flex:80">03</div><div class="b g" style="flex:5"></div>
+    <div class="b b4" style="flex:65">04</div><div class="b g" style="flex:5"></div>
+    <div class="b b5" style="flex:70">05</div><div class="b g" style="flex:5"></div>
+    <div class="b b6" style="flex:55">06</div><div class="b g" style="flex:5"></div>
+  </div>
+  <div class="bar-legend"><span>0:00</span><span>1:45</span><span>3:30</span><span>5:15</span><span>7:00</span></div>
+
+  <table class="run">
+    <tr><th></th><th>Clock</th><th>Sec</th><th>Speaker</th><th>Slide &amp; the one thing to land</th></tr>
+    <tr>
+      <td class="n">01</td><td class="clk">0:00 → 0:35</td><td class="dur">35s</td>
+      <td class="who"><b>Harshit</b><span>Pitch lead · captain</span></td>
+      <td class="slide"><b>Title &amp; the frame</b><span>"VIMAAN tells the RBI whether to raise interest rates."</span></td>
+    </tr>
+    <tr>
+      <td class="n">02</td><td class="clk">0:40 → 2:05</td><td class="dur">85s</td>
+      <td class="who"><b>Soumya</b><span>Data Engineer</span></td>
+      <td class="slide"><b>An airfare is a surface</b><span>80 cells — one route, on one day.</span></td>
+    </tr>
+    <tr>
+      <td class="n">03</td><td class="clk">2:10 → 3:30</td><td class="dur">80s</td>
+      <td class="who"><b>Sankalp</b><span>Index Statistician</span></td>
+      <td class="slide"><b>Technical approach &amp; index engine</b><span>+12 index points of pure drift.</span></td>
+    </tr>
+    <tr>
+      <td class="n">04</td><td class="clk">3:35 → 4:40</td><td class="dur">65s</td>
+      <td class="who"><b>Bhumika</b><span>Acquisition Lead</span></td>
+      <td class="slide"><b>Feasibility, risk &amp; compliance</b><span>Two of three lanes need no scraping.</span></td>
+    </tr>
+    <tr>
+      <td class="n">05</td><td class="clk">4:45 → 5:55</td><td class="dur">70s</td>
+      <td class="who"><b>Shruti</b><span>Frontend</span></td>
+      <td class="slide"><b>Impact &amp; benefits</b><span>9.43% → repo rate → 140 crore people.</span></td>
+    </tr>
+    <tr>
+      <td class="n">06</td><td class="clk">6:00 → 6:55</td><td class="dur">55s</td>
+      <td class="who"><b>Daksh</b><span>Backend · SDMX</span></td>
+      <td class="slide"><b>Evidence base &amp; close</b><span>"Their published estimators, not ours."</span></td>
+    </tr>
+    <tr class="total">
+      <td></td><td class="clk">7:00</td><td class="dur">420s</td><td class="who">TOTAL</td>
+      <td class="slide">390s speaking · 30s handoffs · 5s spare</td>
+    </tr>
+  </table>
+
+  <h2 class="sec">Viva protocol <span>3 MINUTES = 4–6 QUESTIONS</span></h2>
+  <div class="rules">
+    <div class="rule"><span class="n">01</span><h4>One captain routes</h4><p><b>Harshit</b> takes every question first and hands off by name: "That's Sankalp, our index statistician." Never two people answering at once — it reads as a team that doesn't know who owns what.</p></div>
+    <div class="rule"><span class="n">02</span><h4>25 seconds, then stop</h4><p>Number first, then the reason, then silence. If they want more they'll ask. Talking past the answer is how you hand them the next objection.</p></div>
+    <div class="rule"><span class="n">03</span><h4>Never invent a number</h4><p>If you don't have it: "We haven't measured that yet — the design is X, and we'd validate against Y." A judge forgives a gap. Nobody forgives a fabricated statistic.</p></div>
+    <div class="rule"><span class="n">04</span><h4>Reframe, don't defend</h4><p>Agree with the true part, then redirect. "You're right that dynamic pricing is brutal — that's exactly why a single monthly check is meaningless, and why we use multilateral methods."</p></div>
+    <div class="rule"><span class="n">05</span><h4>Say the institution's name</h4><p>ONS, MoSPI, DGCA, the CPI Manual, Rule 135(2). Every named source converts an opinion into a citation. Government panels score citations.</p></div>
+    <div class="rule"><span class="n">06</span><h4>Never say "we didn't have time"</h4><p>Say what exists and what's designed: "Lanes A and B are running; Lane C is built and rate-budgeted." Scope honestly, frame it as roadmap, not shortfall.</p></div>
+  </div>
+
+  <div class="foot"><span>VIMAAN · SIH26056 · Bharat Bytes</span><span>Page 1 — Timing &amp; protocol</span></div>
+</section>
+
+<!-- ================= PAGE 2 — SPEAKER 1 ================= -->
+<section class="page">
+  <div class="sp-head">
+    <div class="sp-id">
+      <div class="sp-num">01</div>
+      <div class="sp-titles">
+        <h3>Title &amp; the frame</h3>
+        <div class="who"><b>Harshit</b> &nbsp;Pitch lead · viva captain</div>
+      </div>
+    </div>
+    <div class="sp-time"><div class="clk">0:00 → 0:35</div><div class="meta">35 SEC · ≈85 WORDS</div></div>
+  </div>
+
+  <div class="shot"><img src="Slide1.PNG" alt="Slide 1 — title page"></div>
+
+  <div class="say">
+    <span class="tag">Opening line — say this exactly</span>
+    <p>"Skyscanner tells you what a ticket costs. <b>VIMAAN tells the Reserve Bank whether to raise interest rates.</b>"</p>
+  </div>
+
+  <ol class="beats">
+    <li><span class="cue">5s</span><span class="txt">Problem statement <b>SIH26056</b>, for the Ministry of Statistics. We are <b>Bharat Bytes</b>.</span></li>
+    <li><span class="cue">10s</span><span class="txt">"We are not building a fare-search product. We are building <b>statistical infrastructure</b> — a daily, audit-grade airfare price index that plugs into the CPI 2024 series."</span></li>
+    <li><span class="cue">10s · point bottom-left</span><span class="txt">The three numbers: <b>500+ routes</b>, <b>three collections a day</b>, delivered as a machine-readable <b>SDMX feed</b> into CPI 2024.</span></li>
+  </ol>
+
+  <div class="notes">
+    <div class="note land"><span class="k">Land</span><span class="v">The one-liner. If they remember nothing else, they remember <b>"tells the RBI whether to raise rates."</b> Pause a full beat after it.</span></div>
+    <div class="note hand"><span class="k">Handoff</span><span class="v">"Here's why today's number needs fixing." &nbsp;<b>→ Soumya</b></span></div>
+    <div class="note avoid"><span class="k">Avoid</span><span class="v">Don't read the problem statement title aloud — it's on screen and it burns 15 seconds you don't have.</span></div>
+  </div>
+
+  <div class="foot"><span>VIMAAN · SIH26056</span><span>Page 2 — Speaker 01 · Harshit</span></div>
+</section>
+
+<!-- ================= PAGE 3 — SPEAKER 2 ================= -->
+<section class="page">
+  <div class="sp-head">
+    <div class="sp-id">
+      <div class="sp-num">02</div>
+      <div class="sp-titles">
+        <h3>An airfare is a surface, not a price</h3>
+        <div class="who"><b>Soumya</b> &nbsp;Data Engineer · owns the surface cube</div>
+      </div>
+    </div>
+    <div class="sp-time"><div class="clk">0:40 → 2:05</div><div class="meta">85 SEC · ≈200 WORDS</div></div>
+  </div>
+
+  <div class="shot"><img src="Slide2.PNG" alt="Slide 2 — the problem today and the price surface"></div>
+
+  <div class="say">
+    <span class="tag">Opening line — say this exactly</span>
+    <p>"Today, MoSPI collects the CPI airfare by hand. DGCA checks <b>78 routes, once a month</b>, by opening airline websites. That is one fare, per route, per month — about <b>sixty days late</b>."</p>
+  </div>
+
+  <ol class="beats">
+    <li><span class="cue">15s · left image</span><span class="txt">Manual monitoring, one check, one route. The red bar at the bottom is your line: <b>incomplete data → biased CPI airfare component → poor policy decisions.</b></span></li>
+    <li><span class="cue">20s · pivot right — the slide's job</span><span class="txt">"But an airfare is not a price, it is a <b>surface</b>." Same route, Mumbai–Delhi. Price moves with departure date, with how many days ahead you book, with cabin, carrier, stops, baggage.</span></li>
+    <li><span class="cue">10s · point at the grid</span><span class="txt">"This grid is <b>eighty cells — one route, on one day</b>. A monthly manual check samples <b>one cell</b> of it."</span></li>
+    <li><span class="cue">20s</span><span class="txt">"VIMAAN reads the whole surface: <b>eight lead-time buckets, L1 to L60</b>, every departure date in a 60-day horizon, three times a day, across 500+ routes."</span></li>
+    <li><span class="cue">15s · bottom strip, fast</span><span class="txt">A surface not a price · Jevons and GEKS-Jevons, not a raw average · compliance as architecture · every number reproducible.</span></li>
+  </ol>
+
+  <div class="notes">
+    <div class="note land"><span class="k">Land</span><span class="v"><b>80 cells — one route, on one day.</b> This single sentence is why the project exists. Say it slowly.</span></div>
+    <div class="note hand"><span class="k">Handoff</span><span class="v">"So how do we actually build that?" &nbsp;<b>→ Sankalp</b></span></div>
+    <div class="note avoid"><span class="k">Avoid</span><span class="v">Don't read the four innovation cards one at a time — name them in one breath and move. This is your longest slot; the surface explanation is what deserves the seconds.</span></div>
+  </div>
+
+  <div class="foot"><span>VIMAAN · SIH26056</span><span>Page 3 — Speaker 02 · Soumya</span></div>
+</section>
+
+<!-- ================= PAGE 4 — SPEAKER 3 ================= -->
+<section class="page">
+  <div class="sp-head">
+    <div class="sp-id">
+      <div class="sp-num">03</div>
+      <div class="sp-titles">
+        <h3>Technical approach &amp; the index engine</h3>
+        <div class="who"><b>Sankalp</b> &nbsp;Index Statistician · owns the index library</div>
+      </div>
+    </div>
+    <div class="sp-time"><div class="clk">2:10 → 3:30</div><div class="meta">80 SEC · ≈190 WORDS</div></div>
+  </div>
+
+  <div class="shot"><img src="Slide3.PNG" alt="Slide 3 — end-to-end data flow and index method"></div>
+
+  <div class="say">
+    <span class="tag">Opening line — say this exactly</span>
+    <p>"Five stages: <b>collect, clean, analyse, index, publish.</b> Fully automated — no human in the loop."</p>
+  </div>
+
+  <ol class="beats">
+    <li><span class="cue">12s · left, columns 1–2</span><span class="txt">Three lanes — statutory tariff pages, licensed airline APIs, public portals — plus DGCA traffic, ATF fuel price, festival calendar. Collections at <b>02:00, 11:00 and 19:00 IST</b>.</span></li>
+    <li><span class="cue">18s · columns 3–4</span><span class="txt">Duplicates, one currency, all-inclusive fares, outliers. Then a <b>hedonic model</b> strips out stops, duration, departure slot, cabin, baggage — "so when an airline swaps a nonstop for a one-stop, that shows up as a <b>quality change, not deflation</b>."</span></li>
+    <li><span class="cue">30s · RIGHT PANEL — slow down, your moment</span><span class="txt">"Same fares, two methods. Chain a daily average over dynamic pricing and you manufacture <b>twelve index points of drift</b> — inflation that never happened. <b>GEKS-Jevons</b> on a 25-month rolling window removes it."</span></li>
+    <li><span class="cue">10s</span><span class="txt">Jevons geometric mean at the elementary level; <b>DGCA passenger weights</b> above it.</span></li>
+    <li><span class="cue">10s · column 6</span><span class="txt">Publish: FastAPI, SDMX-JSON to MoSPI, live dashboard, fare-surge alerts to DGCA.</span></li>
+  </ol>
+
+  <div class="notes">
+    <div class="note land"><span class="k">Land</span><span class="v"><b>+12 index points of pure drift.</b> This is the technical claim that separates you from every other team in the room.</span></div>
+    <div class="note hand"><span class="k">Handoff</span><span class="v">"So — can we actually build this in the real world?" &nbsp;<b>→ Bhumika</b></span></div>
+    <div class="note avoid"><span class="k">Avoid</span><span class="v">Do not read the formulae aloud. They're on the slide for the judge who wants them; reading them costs 20 seconds and loses everyone else.</span></div>
+  </div>
+
+  <div class="foot"><span>VIMAAN · SIH26056</span><span>Page 4 — Speaker 03 · Sankalp</span></div>
+</section>
+
+<!-- ================= PAGE 5 — SPEAKER 4 ================= -->
+<section class="page">
+  <div class="sp-head">
+    <div class="sp-id">
+      <div class="sp-num">04</div>
+      <div class="sp-titles">
+        <h3>Feasibility, risk &amp; what we refuse to do</h3>
+        <div class="who"><b>Bhumika</b> &nbsp;Acquisition Lead · owns collectors &amp; compliance</div>
+      </div>
+    </div>
+    <div class="sp-time"><div class="clk">3:35 → 4:40</div><div class="meta">65 SEC · ≈155 WORDS</div></div>
+  </div>
+
+  <div class="shot"><img src="Slide4.PNG" alt="Slide 4 — feasibility and risk to response mapping"></div>
+
+  <div class="say">
+    <span class="tag">Opening line — say this exactly</span>
+    <p>"The data already exists, and it exists <b>because the law says it must</b>. <b>Rule 135(2)</b> of the Aircraft Rules, 1937 obliges every airline to publish its tariff."</p>
+  </div>
+
+  <ol class="beats">
+    <li><span class="cue">8s · left panel</span><span class="txt">"So <b>two of our three lanes do not scrape at all</b> — statutory tariff pages and licensed APIs."</span></li>
+    <li><span class="cue">10s · middle panel</span><span class="txt">Python, Playwright, PostgreSQL with TimescaleDB, statsmodels, FastAPI, React, Docker. "Nothing exotic, nothing licensed, <b>nothing to procure</b>."</span></li>
+    <li><span class="cue">10s · right panel + KPI row</span><span class="txt">500 routes × 60 departure dates × 8 lead buckets on a rotating panel ≈ <b>150,000 observations a day</b> — one machine's work.</span></li>
+    <li><span class="cue">22s · RIGHT IMAGE — one line each, go fast</span><span class="txt">Blocked → three lanes. No 2024 base fares → backcast from DGCA yields, published provisional with a band. Chain drift → GEKS-Jevons. Layout change → schema-drift detector. Network dies on demo day → <b>seeded 21-day offline dataset</b>.</span></li>
+    <li><span class="cue">15s · close hard</span><span class="txt">"And what we <b>refuse</b> to do: no CAPTCHA solving, no fingerprint spoofing, no personal data. Compliance is an architectural layer, not a disclaimer."</span></li>
+  </ol>
+
+  <div class="notes">
+    <div class="note land"><span class="k">Land</span><span class="v"><b>Two of three lanes need no scraping.</b> This kills the legality question before a judge can ask it.</span></div>
+    <div class="note hand"><span class="k">Handoff</span><span class="v">"And here's what that changes." &nbsp;<b>→ Shruti</b></span></div>
+    <div class="note avoid"><span class="k">Avoid</span><span class="v">Never say "we scrape" as a standalone sentence. Say "we read what the law requires airlines to publish."</span></div>
+  </div>
+
+  <div class="foot"><span>VIMAAN · SIH26056</span><span>Page 5 — Speaker 04 · Bhumika</span></div>
+</section>
+
+<!-- ================= PAGE 6 — SPEAKER 5 ================= -->
+<section class="page">
+  <div class="sp-head">
+    <div class="sp-id">
+      <div class="sp-num">05</div>
+      <div class="sp-titles">
+        <h3>Impact &amp; benefits</h3>
+        <div class="who"><b>Shruti</b> &nbsp;Frontend · owns the dashboard views</div>
+      </div>
+    </div>
+    <div class="sp-time"><div class="clk">4:45 → 5:55</div><div class="meta">70 SEC · ≈165 WORDS</div></div>
+  </div>
+
+  <div class="shot"><img src="Slide5.PNG" alt="Slide 5 — today vs VIMAAN and the government impact chain"></div>
+
+  <div class="say">
+    <span class="tag">Opening line — say this exactly</span>
+    <p>"Four numbers. Routes: <b>78 to 500-plus</b>. Checks a month: <b>1 to 90</b>. Fares per route per month: <b>1 to 1,440</b>. Lag: <b>sixty days to zero</b>."</p>
+  </div>
+
+  <ol class="beats">
+    <li><span class="cue">15s · right image</span><span class="txt">The chain: many airfares → VIMAAN → one airfare price index → CPI 2024 → MoSPI, RBI, DGCA.</span></li>
+    <li><span class="cue">20s · THE STRONGEST 20s IN THE DECK</span><span class="txt">"Air transport sits inside the Transport group, <b>9.43% of CPI 2024</b>. Headline CPI sets the repo rate. The repo rate sets EMIs and deposit rates for <b>140 crore people</b>. A thin, lagged airfare sample propagates all the way through." <b>Then pause.</b></span></li>
+    <li><span class="cue">10s</span><span class="txt">DGCA gets 500+ routes three times daily with automatic surge alerts, instead of 78 by hand.</span></li>
+    <li><span class="cue">12s</span><span class="txt">Citizens get a public <b>lead-time index</b> — the true advance-purchase penalty. "India publishes no such statistic today."</span></li>
+    <li><span class="cue">10s</span><span class="txt">"And it isn't only airfares — swap the collectors and the weights, the same engine gives you a rail-fare or hotel-tariff index."</span></li>
+  </ol>
+
+  <div class="notes">
+    <div class="note land"><span class="k">Land</span><span class="v"><b>9.43% → repo rate → 140 crore people.</b> Say it as one causal sentence, then stop for a beat and let it sit.</span></div>
+    <div class="note hand"><span class="k">Handoff</span><span class="v">"Every claim we've made is sourced —" &nbsp;<b>→ Daksh</b></span></div>
+    <div class="note avoid"><span class="k">Avoid</span><span class="v">Don't claim VIMAAN "fixes inflation". You improve one input to one component. Overclaiming is exactly what gets torn apart in viva.</span></div>
+  </div>
+
+  <div class="foot"><span>VIMAAN · SIH26056</span><span>Page 6 — Speaker 05 · Shruti</span></div>
+</section>
+
+<!-- ================= PAGE 7 — SPEAKER 6 ================= -->
+<section class="page">
+  <div class="sp-head">
+    <div class="sp-id">
+      <div class="sp-num">06</div>
+      <div class="sp-titles">
+        <h3>Evidence base &amp; the close</h3>
+        <div class="who"><b>Daksh</b> &nbsp;Backend · owns the API, SDMX &amp; provenance</div>
+      </div>
+    </div>
+    <div class="sp-time"><div class="clk">6:00 → 6:55</div><div class="meta">55 SEC · ≈130 WORDS</div></div>
+  </div>
+
+  <div class="shot"><img src="Slide6.PNG" alt="Slide 6 — reference tree, three branches"></div>
+
+  <div class="say">
+    <span class="tag">Opening line — say this exactly</span>
+    <p>"Everything we've claimed is sourced. Three branches — <b>Indian statutory basis, international method, and our own validation</b>."</p>
+  </div>
+
+  <ol class="beats">
+    <li><span class="cue">10s · branch A — do NOT read all 14</span><span class="txt">MoSPI's CPI-2024 FAQ, the PIB release on base 2024, Rule 135(2), the Collection of Statistics Act, DGCA traffic data.</span></li>
+    <li><span class="cue">15s · branch B — the credibility beat</span><span class="txt">ONS air-fares methodology, ONS on multilateral index methods, the ILO/IMF CPI Manual, Statistics Canada, Statistics Netherlands. "These are the national statistics offices that already run web-scraped price indices — we're using <b>their published estimators, not inventing our own</b>."</span></li>
+    <li><span class="cue">10s · branch C</span><span class="txt">Benchmarked against MoSPI's own manual airfare series, cross-lane divergence tests, a published revision policy.</span></li>
+    <li><span class="cue">18s · THE CLOSE — four beats, slow</span><span class="txt">"A price surface, not a price. GEKS-Jevons, not an average. An SDMX feed, not just a dashboard. A reproducibility hash on every published number."</span></li>
+  </ol>
+
+  <div class="notes">
+    <div class="note land"><span class="k">Land</span><span class="v"><b>"We're using their published estimators, not inventing our own."</b> This is the credibility line for a government panel.</span></div>
+    <div class="note hand"><span class="k">Handoff</span><span class="v">"We're Bharat Bytes. Thank you." — then stop talking and stand still.</span></div>
+    <div class="note avoid"><span class="k">Avoid</span><span class="v">No "that's all from our side", no nervous trailing off. Four beats, team name, thank you, silence.</span></div>
+  </div>
+
+  <div class="foot"><span>VIMAAN · SIH26056</span><span>Page 7 — Speaker 06 · Daksh</span></div>
+</section>
+
+<!-- ================= PAGE 8 — Q BANK T1 + T2 ================= -->
+<section class="flow">
+  <h2 class="sec">Question bank <span>44 QUESTIONS · OWNER TAG = WHO ANSWERS IN THE ROOM</span></h2>
+
+  <div class="tier-bar"><h3>Tier 1 — Basics</h3><span>ANYONE ON THE PANEL CAN ASK THESE</span></div>
+
+  <div class="qa"><span class="qn">1</span><div><div class="q">What is VIMAAN, in one sentence?</div><div class="a">A real-time airfare price index for India. We collect fares automatically from airline and travel portals across 500+ routes three times a day, and reduce them to <b>one audit-grade index number</b> MoSPI can feed into the CPI 2024 airfare component.</div></div><span class="own">Harshit</span></div>
+
+  <div class="qa"><span class="qn">2</span><div><div class="q">What problem are you actually solving?</div><div class="a">MoSPI still collects the CPI airfare by hand from online platforms, and DGCA's Tariff Monitoring Unit checks only <b>78 routes, once a month</b>. That's one price from a surface with thousands of cells — thin, lagged about 60 days, and biased.</div></div><span class="own">Soumya</span></div>
+
+  <div class="qa"><span class="qn">3</span><div><div class="q">How is this different from MakeMyTrip or Skyscanner?</div><div class="a">They sell tickets; we produce an official statistic. Their output goes into a shopping cart, ours goes into the CPI. Concretely: a <b>methodology endpoint</b>, an <b>SDMX-JSON feed</b> and a <b>reproducibility hash</b> — none of which a fare-search product has any reason to build.</div></div><span class="own">Harshit</span></div>
+
+  <div class="qa"><span class="qn">4</span><div><div class="q">What is a price index, in one line?</div><div class="a">A number measuring how a fixed basket's price has changed against a base period set to 100. So <b>118.7 means fares are 18.7% above the 2024 base</b> — not that a ticket costs ₹118.70.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">5</span><div><div class="q">Why airfares specifically? Isn't it a small item?</div><div class="a">Because it's the <b>worst-measured item in the basket</b>. Air transport sits inside Transport, weighted 9.43% in CPI 2024, and it's where the sampling method is furthest from market reality — one monthly manual check against fares that move 15–20 times a day.</div></div><span class="own">Shruti</span></div>
+
+  <div class="qa"><span class="qn">6</span><div><div class="q">Who actually uses this?</div><div class="a">Four users. <b>MoSPI</b> takes the index into CPI. <b>RBI</b> gets a cleaner inflation input. <b>DGCA</b> gets 500+ routes monitored with surge alerts instead of 78 by hand. <b>Citizens</b> get a public lead-time index showing the real advance-purchase penalty.</div></div><span class="own">Shruti</span></div>
+
+  <div class="qa"><span class="qn">7</span><div><div class="q">What does "augmenting the CPI" mean?</div><div class="a">We don't replace the CPI. We replace one <b>input</b> to it — the manually collected airfare price — with a daily, quality-adjusted, weighted index, delivered in SDMX-JSON, the format MoSPI's systems already exchange statistics in.</div></div><span class="own">Daksh</span></div>
+
+  <div class="qa"><span class="qn">8</span><div><div class="q">So your deliverable is a dashboard?</div><div class="a">The dashboard is the shop window. The deliverable is the <b>API</b>: <code>/v1/index/national</code>, <code>/v1/sdmx/CPI_AIRFARE</code>, <code>/v1/methodology/{id}</code>. Every response embeds coverage, imputation share, revision flag and reproducibility hash. Nothing is published without provenance.</div></div><span class="own">Daksh</span></div>
+
+  <div class="qa"><span class="qn">9</span><div><div class="q">How often does it update?</div><div class="a">Collection three times daily — <b>02:00, 11:00, 19:00 IST</b> — to catch intra-day revenue-management moves. Daily route price is the <b>median</b> of intra-day observations. Index publishes daily; the official bulletin is monthly.</div></div><span class="own">Bhumika</span></div>
+
+  <div class="qa"><span class="qn">10</span><div><div class="q">Where does the number 78 come from?</div><div class="a">DGCA's Tariff Monitoring Unit — it monitors airfares on <b>78 routes, monthly</b>, by staff opening airline websites. <b>PIB / MoCA, PRID 1810467.</b> That's our published baseline to beat.</div></div><span class="own">Bhumika</span></div>
+
+  <div class="tier-bar" style="margin-top:11pt"><h3>Tier 2 — Data, legality &amp; engineering</h3><span>THE OBVIOUS FOLLOW-UPS</span></div>
+
+  <div class="qa"><span class="qn">11</span><div><div class="q">Isn't web scraping illegal?</div><div class="a"><b>Two of our three lanes don't scrape at all.</b> Rule 135(2) of the Aircraft Rules, 1937 <i>requires</i> airlines to publish their established tariff — Lane A reads mandated public disclosure. Lane B uses licensed distribution APIs under contract. Lane C reads publicly displayed prices, honours robots.txt, rate-budgets, zero personal data. We explicitly <b>refuse</b> CAPTCHA-solving and fingerprint spoofing.</div></div><span class="own">Bhumika</span></div>
+
+  <div class="qa"><span class="qn">12</span><div><div class="q">What if a portal blocks your collector?</div><div class="a">The index survives on <b>any one lane</b>. Lanes A and B are statutory and contractual — they can't be blocked. We hold a rolling buffer, so even total collection failure for days doesn't move the monthly number; it moves the <b>coverage percentage</b>, which we publish.</div></div><span class="own">Bhumika</span></div>
+
+  <div class="qa"><span class="qn">13</span><div><div class="q">Why not just ask the airlines for their data?</div><div class="a">Rule 135 already makes them publish it. Voluntary sharing would be aggregated, delayed and self-reported — three things a statistician can't audit. We capture <b>what the consumer actually faces</b>, at the moment they face it.</div></div><span class="own">Bhumika</span></div>
+
+  <div class="qa"><span class="qn">14</span><div><div class="q">Do you store personal data? What about DPDP?</div><div class="a"><b>Zero personal data.</b> We collect fares, not passengers — no names, no PNRs, no user-linked searches, no real-session cookies. There is no personal data in the pipeline, so DPDP obligations around personal data don't attach. Documented in COMPLIANCE.md.</div></div><span class="own">Bhumika</span></div>
+
+  <div class="qa"><span class="qn">15</span><div><div class="q">Where do your index weights come from?</div><div class="a"><b>DGCA Monthly Domestic Traffic Statistics</b> — route-wise passengers in the base period. A route's weight is its share of base-period passengers, so Delhi–Mumbai counts far more than a thin regional route. That sits inside the CPI 2024 Transport structure.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">16</span><div><div class="q">How much data per day? Can you handle it?</div><div class="a">500 routes × 60 dates × 8 buckets is over-sampled, so we run a <b>PPS rotating panel</b> driven by DGCA traffic — roughly <b>150,000 observations a day</b>. Single machine on TimescaleDB. Storage is the cheap part; the index maths is the hard part.</div></div><span class="own">Soumya</span></div>
+
+  <div class="qa"><span class="qn">17</span><div><div class="q">Why PostgreSQL + TimescaleDB rather than plain SQL or Mongo?</div><div class="a">Everything we query is a time series over a route × date × lead-time cube. Timescale hypertables give continuous aggregates and compression, so a 24-month index query runs in milliseconds. We also keep <b>Parquet + DuckDB</b> for analytical replay — that's what makes reproducibility cheap.</div></div><span class="own">Soumya</span></div>
+
+  <div class="qa"><span class="qn">18</span><div><div class="q">What is your medallion architecture actually storing?</div><div class="a"><b>Bronze</b> — immutable raw snapshot with SHA-256, collector version, timestamp. <b>Silver</b> — normalised fare observations, IATA-coded, tax-inclusive, currency-parsed. <b>Gold</b> — the price-surface cube the index engine reads. Bronze is what makes any number re-derivable years later.</div></div><span class="own">Soumya</span></div>
+
+  <div class="qa"><span class="qn">19</span><div><div class="q">What happens when a website changes its layout?</div><div class="a">Parsers are <b>config-driven, not hardcoded</b> — selectors live in config. A <b>schema-drift detector</b> compares field presence and value distributions against the last known-good run and alarms per lane on an SLO. Meanwhile the other two lanes keep the index alive.</div></div><span class="own">Bhumika</span></div>
+
+  <div class="qa"><span class="qn">20</span><div><div class="q">Does this cover international routes?</div><div class="a">Domestic first — that's where the CPI weight and DGCA's mandate sit. Architecture is identical for international; the changes are currency handling, lead-time buckets (ONS uses 6/3/1 month long-haul) and the weight source. Configuration change, not a redesign.</div></div><span class="own">Soumya</span></div>
+
+</section>
+
+<!-- ================= PAGE 9 — Q BANK T3 ================= -->
+<section class="flow">
+  <div class="tier-bar"><h3>Tier 3 — Statistics &amp; method</h3><span>THE QUESTIONS THAT DECIDE THE SCORE</span></div>
+
+  <div class="qa"><span class="qn">21</span><div><div class="q">Why a geometric mean (Jevons) instead of a simple average?</div><div class="a">Arithmetic means are <b>upward-biased when prices are volatile</b>, and airfares are the most volatile thing in the basket. The international CPI Manual prescribes Jevons for elementary aggregates precisely for this. An arithmetic mean would import that bias straight into headline CPI.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">22</span><div><div class="q">What is chain drift, and why does it matter here?</div><div class="a">Chain a price index period-by-period over prices that bounce between buckets and the index <b>fails to return to its start when prices do</b> — it ratchets upward. On dynamic airline pricing that manufactures several percent of inflation a year that never happened. On flat simulated fares, a naive daily-chained index drifts up <b>+12 index points</b>.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">23</span><div><div class="q">Explain GEKS-Jevons.</div><div class="a">Instead of chaining 0→1→2→…→t, GEKS computes <b>every possible bilateral comparison</b> within a window and takes the geometric mean of the paths from 0 to t through each intermediate period. Because it's symmetric and uses all pairs it is <b>transitive</b> — drift cancels by construction. Jevons is the bilateral formula underneath.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">24</span><div><div class="q">Why a 25-month window, and what is splicing?</div><div class="a">25 months = two full seasonal cycles plus one, so every month is compared against its own season. An index must never revise published history, so when the window rolls we <b>mean-splice</b>: take the new window's movement and link it onto the existing series. Published NSO practice — ONS and Statistics Netherlands both do this.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">25</span><div><div class="q">What is hedonic quality adjustment — concretely?</div><div class="a">We regress log fare on stops, log duration, departure slot, refundability, baggage and carrier, giving the price of each attribute. <b>Example:</b> IndiGo replaces a nonstop with a one-stop — average fare falls, but that's a worse product, not deflation. The model re-prices everything to a fixed reference spec, so the drop reads as a <b>quality change</b>.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">26</span><div><div class="q">A ticket bought in August for a December flight — which month's inflation?</div><div class="a">International practice (ONS FOI-2023-1164) attributes the fare to the <b>month of departure</b>, not purchase, because the index measures the price of consuming the flight. We attribute on that <b>use basis</b> and publish an <b>acquisition-basis series in parallel</b> so MoSPI can choose. Almost nobody handles this, and it materially changes the answer.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">27</span><div><div class="q">How do you seasonally adjust when Diwali moves every year?</div><div class="a"><b>X-13ARIMA-SEATS with moving-holiday regressors</b> for Diwali, Holi, Eid, Christmas and school-vacation windows. A plain seasonal filter assumes the spike falls in the same calendar month every year — for Indian festivals it doesn't, so it mis-attributes the spike and leaves a phantom seasonal in the wrong month.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">28</span><div><div class="q">CPI base is 2024 — but you have no 2024 fares. What's your denominator?</div><div class="a">Honest answer: we <b>backcast it</b> from DGCA published route yields, archived fare data and web-archive snapshots, and publish the base as <b>provisional with a confidence band</b> that narrows as live data accumulates. We flag it rather than hide it — a published uncertainty is defensible, a silent assumption isn't.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">29</span><div><div class="q">Listed fare versus what people actually pay — isn't your index biased?</div><div class="a">Yes, and we correct rather than pretend. Portals show the cheapest bucket; realised yield differs. We estimate <b>k = realised yield ÷ listed median</b> from DGCA route revenue and passenger data, apply it as a slow-moving level correction, and publish uncertainty bands. For an <i>index</i>, a stable level bias largely cancels — what matters is the movement.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">30</span><div><div class="q">Laspeyres, Lowe or Young — which and why?</div><div class="a">Upper level uses a <b>Lowe/Young</b> index with DGCA base-period passenger weights, which is what CPIs actually run in practice. We also publish the classic <b>Laspeyres</b> form alongside for direct comparability with MoSPI's existing method — and explain the gap rather than quietly presenting one number.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">31</span><div><div class="q">What if a route has no fares on a given day — missing cells?</div><div class="a">A <b>two-way fixed-effects imputation</b> — route FE + date FE + lead-bucket effect — so a missing cell fills from the route's own level and the day's market-wide movement. We publish the <b>imputation share</b> with every number, and anything below a coverage threshold is marked <b>provisional</b>.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">32</span><div><div class="q">What is Time-Product-Dummy, and why run both it and GEKS?</div><div class="a">TPD is a regression — <code>ln p_jt = μ_t + λ_j + ε</code> — where the time dummies μ_t <i>are</i> the index, with product fixed effects absorbing quality. It's a second, independent multilateral estimator. We run both because <b>agreement between two different estimators is evidence</b>; divergence is a flag that something in the data is wrong.</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">33</span><div><div class="q">How would you prove your index is actually right?</div><div class="a">Four tests. <b>One:</b> benchmark against MoSPI's own manual airfare series over overlapping months. <b>Two:</b> cross-lane divergence tests — statutory vs API vs portal — with a flag threshold, so we never silently average disagreeing sources. <b>Three:</b> leave-one-route-out sensitivity on the DGCA weights. <b>Four:</b> a published revision policy.</div></div><span class="own">Daksh</span></div>
+
+  <div class="qa"><span class="qn">34</span><div><div class="q">Why three collections a day rather than one, or twenty?</div><div class="a">Revenue-management systems reprice through the day, so one snapshot samples an arbitrary point on that path. Three — morning, midday, evening — captures the shape at acceptable request cost, and we take the <b>median</b>, robust to a single anomalous scrape. Twenty adds load without materially reducing variance.</div></div><span class="own">Sankalp</span></div>
+
+</section>
+
+<!-- ================= PAGE 10 — Q BANK T4 + CLOSE ================= -->
+<section class="flow">
+  <div class="tier-bar"><h3>Tier 4 — Hostile &amp; trap questions</h3><span>REHEARSE THESE OUT LOUD</span></div>
+
+  <div class="qa"><span class="qn">35</span><div><div class="q">"Dynamic pricing makes any airfare index meaningless."</div><div class="a">"Dynamic pricing is precisely why a <b>single monthly manual check</b> is meaningless — it samples one point on a curve that moves twenty times a day. It's not why an index is meaningless. We sample eight lead-time buckets three times daily, take medians, and use multilateral estimators provably drift-free under exactly this volatility. Volatility is the argument <i>for</i> our method."</div></div><span class="own">Sankalp</span></div>
+
+  <div class="qa"><span class="qn">36</span><div><div class="q">"This is just a scraper with a chart on top."</div><div class="a">"The scraper is about 15% of the work and the least interesting part. The project is the <b>index engine</b>: hedonic quality adjustment, Jevons elementary aggregates, GEKS-Jevons multilateral on a rolling window, festival-aware seasonal adjustment, departure-month attribution — then a methodology endpoint and a reproducibility hash on every number. That's a statistical instrument, not a chart."</div></div><span class="own">Harshit</span></div>
+
+  <div class="qa"><span class="qn">37</span><div><div class="q">"Could MoSPI actually deploy this? What would it take?"</div><div class="a">"Technically, today: <code>/v1/sdmx/CPI_AIRFARE</code> emits SDMX-JSON, the exchange format their systems already speak — no integration project. Institutionally it needs what any new official series needs: a methodology review, a parallel-run against the existing manual series, and a published revision policy. We built all three in from the start."</div></div><span class="own">Daksh</span></div>
+
+  <div class="qa"><span class="qn">38</span><div><div class="q">"What's actually running versus what's on the slide?"</div><div class="a">Answer <b>honestly and specifically</b> — name what's live, what's built-not-scaled, what's designed. Then close: "and the whole thing comes up with <code>docker compose up</code>, seeded with 21 days of real pre-collected fares, so it runs with the network unplugged." Judges reward a team that knows exactly where its own edges are.</div></div><span class="own">Harshit</span></div>
+
+  <div class="qa"><span class="qn">39</span><div><div class="q">"Why should the government trust a number produced by six students?"</div><div class="a">"Because it doesn't have to trust us — it can <b>check us</b>. Every published value carries coverage, imputation share, a revision flag and a reproducibility hash, and the methodology endpoint returns the exact formula and parameters used for <i>that number</i>. Anyone can re-derive it from hashed raw snapshots. And we aren't inventing estimators — these are ONS and CPI Manual methods."</div></div><span class="own">Daksh</span></div>
+
+  <div class="qa"><span class="qn">40</span><div><div class="q">"Airfare is a tiny slice of CPI. Why does this matter?"</div><div class="a">"Two reasons. It's the item where <b>measurement error is largest relative to weight</b> — a small weight measured badly still pollutes the aggregate. Second, the platform generalises: swap collectors and weights and the same engine produces a rail-fare or hotel-tariff index. Airfare is the <b>hardest first instance</b>, deliberately chosen."</div></div><span class="own">Shruti</span></div>
+
+  <div class="qa"><span class="qn">41</span><div><div class="q">"What if airlines game your collection once they know it feeds the CPI?"</div><div class="a">"Real risk, and it's why we don't depend on one source. Lane A reads the <b>statutory published tariff</b> — misstating that is a regulatory matter, not a scraping problem. Cross-lane divergence tests surface a source that starts disagreeing with the others. And the listed-to-transacted calibration against DGCA revenue is an independent anchor on reality."</div></div><span class="own">Bhumika</span></div>
+
+  <div class="qa"><span class="qn">42</span><div><div class="q">"What does it cost to run, and who maintains it afterwards?"</div><div class="a">"One machine plus object storage — everything open source, nothing licensed, nothing to procure. <b>Marginal cost per added route is effectively zero</b>, which is why 78 → 500+ isn't a budget question. Operationally it's designed to sit inside DGCA's or MoSPI's existing IT, with Grafana SLOs per lane so a failure pages someone instead of silently corrupting a statistic."</div></div><span class="own">Harshit</span></div>
+
+  <div class="qa"><span class="qn">43</span><div><div class="q">"What's the weakest part of your solution?"</div><div class="a">Never say "nothing". Say: <b>"The 2024 base period."</b> We have no live 2024 fares, so we backcast from DGCA yields and archives and publish the base as provisional with a confidence band. It's the one number we'd want a year of parallel running to firm up — which is exactly why we built a published revision policy instead of pretending the base is exact.</div></div><span class="own">Harshit</span></div>
+
+  <div class="qa"><span class="qn">44</span><div><div class="q">"Show me the one thing that proves you understand this problem."</div><div class="a">Go straight to slide 3, right panel. <b>"Identical simulated fares. Zero true inflation. The naive daily-chained index drifts up twelve points; GEKS-Jevons stays flat."</b> Then: "Most teams will build the red line and not know it's wrong. That single choice is the difference between a working index and a misleading one."</div></div><span class="own">Sankalp</span></div>
+
+  <div class="cheat">
+    <h3>Numbers cheat sheet — every one of these is lookup-able</h3>
+    <table>
+      <tr><td class="k">78</td><td>Routes DGCA's Tariff Monitoring Unit checks, monthly, by hand. <i>PIB/MoCA PRID 1810467</i></td></tr>
+      <tr><td class="k">500+</td><td>Routes VIMAAN monitors, three times a day</td></tr>
+      <tr><td class="k">9.43%</td><td>Transport group weight in CPI 2024 — air transport sits inside it</td></tr>
+      <tr><td class="k">~150,000</td><td>Observations a day on the PPS rotating panel</td></tr>
+      <tr><td class="k">8 buckets</td><td>Lead times L1, L3, L7, L14, L21, L30, L45, L60 days before departure</td></tr>
+      <tr><td class="k">60 days</td><td>Forward departure horizon · also the current data lag we remove</td></tr>
+      <tr><td class="k">80 cells</td><td>8 lead buckets × 10 departure dates — one route, one day</td></tr>
+      <tr><td class="k">+12 pts</td><td>Pure chain drift a naive daily-chained index manufactures on flat fares</td></tr>
+      <tr><td class="k">25 months</td><td>GEKS rolling window — two seasonal cycles plus one</td></tr>
+      <tr><td class="k">3× daily</td><td>02:00 · 11:00 · 19:00 IST</td></tr>
+      <tr><td class="k">1 → 1,440</td><td>Fares per route per month, today vs VIMAAN</td></tr>
+      <tr><td class="k">Rule 135(2)</td><td>Aircraft Rules 1937 — airlines <i>must</i> publish established tariffs</td></tr>
+      <tr><td class="k">2 of 3</td><td>Intake lanes that involve no scraping at all</td></tr>
+    </table>
+  </div>
+
+  <div class="final" style="margin-top:12pt">
+    <h3>Tonight, before you sleep</h3>
+    <ul>
+      <li>Three full run-throughs against a timer. Third one standing, no notes.</li>
+      <li>Each person memorises <b>only their opening line and their handoff line</b>. Beats can be improvised; the seams cannot.</li>
+      <li>Tier-4 drill: someone reads hostile questions at random, answers capped at 25 seconds, no exceptions.</li>
+      <li>Confirm <code style="font-family:var(--f-mono)">docker compose up</code> works offline on the demo laptop; backup video on two devices.</li>
+      <li>Open the deck in presentation mode on the actual machine you'll present from — check the fonts render.</li>
+    </ul>
+    <p class="kicker"><b>Every number you say should be one a judge could look up.</b> That's the whole posture — you're not pitching an app, you're proposing a statistic.</p>
+  </div>
+
+  <div class="foot"><span>VIMAAN · SIH26056 · Bharat Bytes</span><span>Viva bank · Numbers cheat sheet · Final checklist</span></div>
+</section>
+
+</body>
+</html>
