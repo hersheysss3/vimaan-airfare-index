@@ -82,3 +82,7 @@ Thumbs.db
 backend/vimaan.db
 backend/vimaan.db-*
 backend/vimaan/data/_cache/
+
+# scratch downloads from source investigation
+ak.xml
+*.tmp
