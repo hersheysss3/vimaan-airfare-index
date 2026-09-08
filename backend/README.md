@@ -12,7 +12,7 @@ python -c "from vimaan import db,pipeline; \
            conn=db.connect(); print(pipeline.run_all(conn)); conn.commit()"
 
 uvicorn vimaan.api:app --reload      # http://127.0.0.1:8000/docs
-pytest -q                            # 56 tests
+pytest -q                            # 69 tests
 ```
 
 ## What is real, and what is not
@@ -23,9 +23,9 @@ Being precise about this matters more than the demo looking impressive.
 |---|---|
 | **Route weights** | **Real.** Published DGCA monthly domestic city-pair traffic — 2024 calendar year, 500 routes, 146.3 million passengers. |
 | **Route list** | **Real.** Derived from the same DGCA release, heaviest first. |
-| **Index estimators** | **Real.** Jevons, GEKS-Jevons, TPD, mean splicing, Lowe. 56 tests assert their properties. |
+| **Index estimators** | **Real.** Jevons, GEKS-Jevons, TPD, mean splicing, Lowe. 69 tests assert their properties. |
 | **CPI structure** | **Real.** Base 2024 = 100, transport group weight 9.43% (MoSPI). |
-| **Fares** | **Simulated.** `scripts/simulate_panel.py`, clearly labelled everywhere it appears. |
+| **Fares** | **Simulated.** `scripts/simulate_panel.py`, clearly labelled everywhere it appears. Real fares need a free Travelpayouts token, below. |
 
 So the aggregation is honest — Delhi–Mumbai moves the national figure by its
 actual 4.29% share of Indian domestic passengers, not by a number we chose.
@@ -33,25 +33,48 @@ The prices being aggregated are not yet collected.
 
 ### Getting real fares
 
-Live collection needs credentials, not more code. The collector is written and
-waiting:
+Amadeus Self-Service — the obvious free route, and what this repo originally
+targeted — was **decommissioned on 17 July 2026**. That adapter is gone. Two
+routes remain, and they trade off differently.
+
+**Travelpayouts / Aviasales Data API** — free registration, real observed
+fares, working today.
 
 ```bash
-# free Self-Service tier at https://developers.amadeus.com
-export AMADEUS_CLIENT_ID=...
-export AMADEUS_CLIENT_SECRET=...
-python -m vimaan.collect.amadeus --origin DEL --destination BOM --days 14
+export TRAVELPAYOUTS_TOKEN=...        # free at travelpayouts.com
+python -m vimaan.collect.travelpayouts --origin DEL --destination BOM
 ```
 
-Amadeus is Lane B in the design: contractual access, so nothing depends on a
-site tolerating us. Lanes A (Rule 135(2) tariff pages) and C (public portals)
-use the same `Collector` base, which enforces robots.txt, a per-host request
-budget, content-addressed snapshots and schema-drift detection.
+Its limitation is methodological and is stated in the module docstring rather
+than buried: the cache is built from *what users searched for* and is held for
+up to seven days. That is a selection-biased sample with a staleness window.
+Good enough to prove the pipeline on real prices; not a foundation for a
+CPI-grade series.
 
-Indian airline hosts were unreachable from the machine this was built on, so
-Lane A and C adapters are not written against live pages yet. That is a
-deliberate gap, not an oversight — writing a parser against a page you cannot
-fetch produces fiction.
+**Lane A, tariffs published under Rule 135(2)** — the durable answer. Airlines
+are legally obliged to publish their established tariff, and a statutory
+obligation is not withdrawn when a vendor changes its business model, which is
+exactly what just happened to Amadeus.
+
+Reachability is measured, not assumed:
+
+```bash
+python -m vimaan.collect.tariff --probe
+```
+
+| Carrier | Reachable | robots.txt |
+|---|---|---|
+| Akasa Air (QP) | yes | allows |
+| SpiceJet (SG) | yes | allows |
+| Air India Express (IX) | yes | allows |
+| IndiGo (6E) | no | — |
+| Air India (AI) | no | — |
+
+Three of five respond from the machine this was built on, all permitting
+collection. Tariff pages share no structure between carriers, so each needs
+its own parser written against the live page — those are absent rather than
+stubbed, because a parser written against a page you cannot fetch is fiction.
+The shared plumbing they will use already exists on `Collector`.
 
 ## Layout
 
@@ -66,7 +89,8 @@ vimaan/
 │   └── airports.py      city name -> IATA, in one place
 ├── collect/
 │   ├── base.py          robots gate, rate budget, snapshots, drift detection
-│   └── amadeus.py       Lane B adapter (free tier)
+│   ├── travelpayouts.py Lane B adapter (free token, real cached fares)
+│   └── tariff.py        Lane A scaffold + measured carrier reachability
 ├── models.py            FareObservation, IndexPoint, RouteWeight
 ├── db.py                SQLite medallion: bronze / silver / gold
 ├── pipeline.py          silver -> gold -> published figure

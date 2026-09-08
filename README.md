@@ -68,7 +68,7 @@ Two of the three intake lanes do not scrape at all.
 | Lane | Basis | Can it be blocked? |
 |---|---|---|
 | A — airline tariff pages | **Rule 135(2), Aircraft Rules 1937** obliges every airline to publish its established tariff | No, it is a statutory disclosure |
-| B — licensed distribution APIs | Contractual (Amadeus / Duffel / NDC) | No |
+| B — licensed distribution APIs | Contractual. Amadeus Self-Service was decommissioned 17 Jul 2026; the working free route is now the Travelpayouts Data API | No |
 | C — public travel portals | Publicly displayed prices, `robots.txt` observed, rate-budgeted | Yes, and the index survives on A and B |
 
 Explicitly **out of scope by design**: no CAPTCHA solving, no login or paywall
@@ -162,6 +162,11 @@ a Canvas-2D orthographic globe, a WebGL price surface via three.js, animation vi
 framer-motion's vanilla DOM API. Degrades cleanly with no GPU and with no network.
 
 **Deck pipeline** — Python, matplotlib, python-pptx, Pillow.
+
+**Backend** ([backend/](backend/)) — Python, FastAPI, SQLite medallion store, and an
+index engine with 69 tests asserting its properties. Route weights come from real
+published DGCA traffic; see [backend/README.md](backend/README.md) for exactly what is
+real and what is simulated.
 
 **Proposed production stack** (see [SOLUTION_PLAN.md](SOLUTION_PLAN.md)) — Python 3.11,
 Playwright, PostgreSQL 16 + TimescaleDB, Polars, statsmodels, X-13ARIMA-SEATS, FastAPI,
