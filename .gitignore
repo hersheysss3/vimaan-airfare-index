@@ -77,3 +77,8 @@ Thumbs.db
 
 .vercel
 .env*
+
+# backend: generated database and cached source data
+backend/vimaan.db
+backend/vimaan.db-*
+backend/vimaan/data/_cache/
