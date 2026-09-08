@@ -887,6 +887,27 @@ function lineChart(host,opt){
     dots.forEach(function(d){d.setAttribute("opacity",0)});
   });
 }
+/* Pick black or white for text sitting on an arbitrary fill.
+   The ramp index cannot be used for this: the dark-theme ramp runs
+   light-to-dark in the opposite direction, so a high index means a pale
+   cell there and a dark one in light mode. Measure the colour instead. */
+function readableOn(col){
+  var r,g,b,m;
+  col=String(col).trim();
+  if(col.charAt(0)==="#"){
+    var h=col.slice(1);
+    if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    r=parseInt(h.slice(0,2),16);g=parseInt(h.slice(2,4),16);b=parseInt(h.slice(4,6),16);
+  }else if((m=col.match(/rgba?\(([^)]+)\)/))){
+    var p=m[1].split(",");r=parseFloat(p[0]);g=parseFloat(p[1]);b=parseFloat(p[2]);
+  }else{return css("--ink")}
+  if(isNaN(r)||isNaN(g)||isNaN(b))return css("--ink");
+  function lin(v){v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)}
+  var L=0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
+  /* contrast against white vs against near-black, pick the better one */
+  return (1.05/(L+0.05)) >= ((L+0.05)/0.05) ? "#FFFFFF" : "#0B0F14";
+}
+
 function heatmap(host,opt){
   var rows=opt.rows.length,cols=opt.cols.length,cw=opt.cw||46,ch=opt.ch||30,gap=2;
   var P={l:opt.pl||44,t:opt.pt||22},W=P.l+cols*(cw+gap),H=P.t+rows*(ch+gap)+4;
@@ -916,7 +937,7 @@ function heatmap(host,opt){
     rc.style.cursor="pointer";svg.appendChild(rc);
     if(opt.label!==false){
       var t=el("text",{x:x+cw/2,y:y+ch/2+4,"text-anchor":"middle","font-size":11.5,"font-family":css("--fm"),
-        "font-weight":500,fill:k>=5?"#fff":css("--ink"),"pointer-events":"none",opacity:dim?0.16:1});
+        "font-weight":500,fill:readableOn(fillCol),"pointer-events":"none",opacity:dim?0.16:1});
       t.textContent=opt.cell?opt.cell(v):Math.round(v);svg.appendChild(t);
     }
     rc.addEventListener("mouseenter",function(){
