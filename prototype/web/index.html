@@ -17,10 +17,11 @@
   --surface:#FFFFFF;
   --surface-2:#F5F5F3;
   --raised:#EFEFEC;
+  --quiet-cell:#8B8F97;
   --ink:#17181A;
   --ink-2:#4A4D52;
-  --muted:#83878D;
-  --faint:#A6AAAF;
+  --muted:#5C6066;
+  --faint:#686C73;
   --rule:#E5E5E2;
   --rule-strong:#CFCFCB;
   --hair:rgba(23,24,26,.10);
@@ -29,7 +30,7 @@
   --accent-soft:#F1F1EE;
   --focus:#5B6470;             /* distinct from every data hue */
 
-  --s1:#2a78d6;                /* data only, never chrome */
+  --s1:#2870c4;                /* data only, never chrome */
   --s2:#c8501e;
   --s3:#12805b;
 
@@ -56,10 +57,11 @@
     --surface:#141517;
     --surface-2:#1B1D1F;
     --raised:#232629;
+    --quiet-cell:#60656C;
     --ink:#F2F2F0;
     --ink-2:#B4B7BB;
-    --muted:#7C8085;
-    --faint:#63676C;
+    --muted:#888C92;
+    --faint:#888C92;
     --rule:#26282B;
     --rule-strong:#383B3F;
     --hair:rgba(242,242,240,.11);
@@ -68,22 +70,22 @@
     --focus:#8A929C;
     --s1:#3987e5; --s2:#e8763e; --s3:#22b183;
     --good:#3ec46b; --warn:#e3a33f; --warn-fill:#e3a33f;
-    --q1:#17406f; --q2:#255a9b; --q3:#3573bd; --q4:#4f8fd4;
-    --q5:#74a9e0; --q6:#9cc3ea; --q7:#bcd7f2; --q8:#d9e8f8; --q9:#eef4fc;
+    --q1:#eef4fc; --q2:#d9e8f8; --q3:#bcd7f2; --q4:#9cc3ea;
+    --q5:#74a9e0; --q6:#4f8fd4; --q7:#3573bd; --q8:#255a9b; --q9:#17406f;
     --band:rgba(57,135,229,.14);
     --spot:rgba(242,242,240,.09);
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
-  --paper:#0C0D0E; --surface:#141517; --surface-2:#1B1D1F; --raised:#232629;
-  --ink:#F2F2F0; --ink-2:#B4B7BB; --muted:#7C8085; --faint:#63676C;
+  --paper:#0C0D0E; --surface:#141517; --surface-2:#1B1D1F; --raised:#232629; --quiet-cell:#60656C;
+  --ink:#F2F2F0; --ink-2:#B4B7BB; --muted:#888C92; --faint:#888C92;
   --rule:#26282B; --rule-strong:#383B3F; --hair:rgba(242,242,240,.11);
   --accent:#F2F2F0; --accent-soft:#1E2023; --focus:#8A929C;
   --s1:#3987e5; --s2:#e8763e; --s3:#22b183;
   --good:#3ec46b; --warn:#e3a33f; --warn-fill:#e3a33f;
-  --q1:#17406f; --q2:#255a9b; --q3:#3573bd; --q4:#4f8fd4;
-  --q5:#74a9e0; --q6:#9cc3ea; --q7:#bcd7f2; --q8:#d9e8f8; --q9:#eef4fc;
+  --q1:#eef4fc; --q2:#d9e8f8; --q3:#bcd7f2; --q4:#9cc3ea;
+  --q5:#74a9e0; --q6:#4f8fd4; --q7:#3573bd; --q8:#255a9b; --q9:#17406f;
   --band:rgba(57,135,229,.14); --spot:rgba(242,242,240,.09);
 }
 
@@ -101,7 +103,7 @@ svg{flex-shrink:0}
 :focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:3px}
 .mono{font-family:var(--fm);font-variant-numeric:tabular-nums}
 .lbl{
-  font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.1em;
+  font-family:var(--fm);font-size:11px;font-weight:500;letter-spacing:.1em;
   text-transform:uppercase;color:var(--muted);
 }
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -116,7 +118,7 @@ svg{flex-shrink:0}
 }
 .brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .brand .w{font-size:17px;font-weight:600;letter-spacing:.02em}
-.brand .sub{display:none}
+.brand .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
 
 .tabs{display:flex;gap:26px;flex-wrap:wrap}
 .tab{
@@ -138,7 +140,7 @@ svg{flex-shrink:0}
 .topright{margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0}
 .clockw{text-align:right;line-height:1.25}
 .clockw .t{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--ink-2)}
-.clockw .n{font-family:var(--fm);font-size:10px;color:var(--faint)}
+.clockw .n{font-family:var(--fm);font-size:11px;color:var(--faint)}
 
 .btn{
   display:inline-flex;align-items:center;gap:8px;justify-content:center;
@@ -208,11 +210,6 @@ svg{flex-shrink:0}
 #globeWrap{position:relative;min-height:clamp(300px,44vh,460px);cursor:grab}
 #globeWrap:active{cursor:grabbing}
 .hero-copy{padding:46px 20px 46px 26px;position:relative;z-index:2;max-width:620px}
-.eyebrow{
-  font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.15em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:20px;
-}
-.eyebrow::after{display:none}
 .hero-copy h1{
   font-family:var(--ff);font-weight:600;color:var(--ink);letter-spacing:-.032em;
   font-size:clamp(31px,3.6vw,46px);line-height:1.1;margin-bottom:18px;
@@ -221,7 +218,7 @@ svg{flex-shrink:0}
 .hero-copy p{color:var(--ink-2);font-size:16px;line-height:1.62;max-width:46ch}
 .hero-figs{display:flex;gap:38px;flex-wrap:wrap;margin-top:30px;padding-top:24px;border-top:1px solid var(--hair)}
 .hero-fig-i .v{font-family:var(--fm);font-size:23px;font-weight:500;color:var(--ink);letter-spacing:-.02em;line-height:1}
-.hero-fig-i .k{font-family:var(--fm);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.hero-fig-i .k{font-family:var(--fm);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:8px}
 .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
 .btn-gold{
   display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--surface);
@@ -241,7 +238,7 @@ svg{flex-shrink:0}
 .btn-gold svg,.btn-ghost svg{width:15px;height:15px}
 .globe-hint{
   position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
-  font-family:var(--fm);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:var(--fm);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
   color:var(--faint);pointer-events:none;white-space:nowrap;
   transition:opacity .4s var(--ease);
 }
@@ -252,7 +249,7 @@ svg{flex-shrink:0}
 }
 
 .srule{
-  display:flex;align-items:center;gap:14px;font-family:var(--fm);font-size:10.5px;
+  display:flex;align-items:center;gap:14px;font-family:var(--fm);font-size:11px;
   font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
   margin:34px 0 16px;
 }
@@ -267,18 +264,18 @@ svg{flex-shrink:0}
 .hero-fig{font-family:var(--fm);font-size:56px;font-weight:500;line-height:1;letter-spacing:-.04em;margin:10px 0 6px}
 .hero-delta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
 .delta{display:inline-flex;align-items:center;gap:5px;font-family:var(--fm);font-size:13px;font-weight:500;color:var(--ink-2)}
-.delta .sm{font-size:10px;color:var(--faint);letter-spacing:.06em}
+.delta .sm{font-size:11px;color:var(--faint);letter-spacing:.06em}
 .badge{display:none}
 .prov{border-top:1px solid var(--hair);padding-top:16px;margin-top:auto;display:flex;flex-direction:column;gap:9px}
 .prow{display:flex;justify-content:space-between;gap:12px;font-size:13px}
-.prow .k{color:var(--muted);font-family:var(--fm);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase}
+.prow .k{color:var(--muted);font-family:var(--fm);font-size:11px;letter-spacing:.07em;text-transform:uppercase}
 .prow .v{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--ink-2)}
 .hero-r{padding:22px 24px 14px;min-width:0}
 
 /* ============================================================ STATS */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;background:var(--hair);border:1px solid var(--hair);border-radius:11px;overflow:hidden}
 .stat{background:var(--surface);padding:18px 20px;display:flex;flex-direction:column;gap:3px}
-.stat .k{font-family:var(--fm);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.stat .k{font-family:var(--fm);font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
 .stat .v{font-family:var(--fm);font-size:25px;font-weight:500;letter-spacing:-.028em;line-height:1.12;color:var(--ink)}
 .stat .n{font-size:12.5px;color:var(--faint);line-height:1.45}
 
@@ -297,7 +294,7 @@ svg{flex-shrink:0}
   box-shadow:0 14px 36px -14px rgba(0,0,0,.32);
 }
 .tip.on{opacity:1}
-.tip .th{font-family:var(--fm);font-size:10px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;margin-bottom:6px}
+.tip .th{font-family:var(--fm);font-size:11px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;margin-bottom:6px}
 .tip .tr{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:4px}
 .tip .tr .nm{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
 .tip .tr i{width:9px;height:9px;border-radius:2px;display:block}
@@ -328,6 +325,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.14)}
 input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--surface)}
 
 /* ============================================================ MAP */
+#cardMap{position:sticky;top:86px;align-self:start}
 .mapwrap{position:relative;background:var(--surface-2);border-radius:8px}
 .mapwrap canvas{display:block;width:100%;height:auto}
 .maptip{
@@ -341,7 +339,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 /* ============================================================ TABLE */
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th{
-  font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
   text-align:left;font-weight:500;padding:0 12px 9px 0;border-bottom:1px solid var(--rule);
 }
 .tbl th.r,.tbl td.r{text-align:right;padding-right:0}
@@ -379,9 +377,15 @@ pre.code .k,pre.code .s,pre.code .n{color:var(--ink-2)}
 #surf3d:active{cursor:grabbing}
 #surf3d canvas{display:block;width:100%;height:100%}
 .surf3d-hint{
-  position:absolute;right:13px;bottom:11px;font-family:var(--fm);font-size:9.5px;
+  position:absolute;right:13px;bottom:11px;font-family:var(--fm);font-size:11px;
   letter-spacing:.11em;text-transform:uppercase;color:var(--faint);pointer-events:none;
 }
+.surf3d-reset{
+  position:absolute;left:13px;bottom:11px;font-family:var(--fm);font-size:11px;font-weight:500;
+  color:var(--ink-2);background:var(--surface);border:1px solid var(--hair);border-radius:6px;
+  padding:5px 10px;cursor:pointer;
+}
+.surf3d-reset:hover{color:var(--ink);border-color:var(--rule-strong)}
 
 /* ============================================================ STORY */
 .spot{box-shadow:0 0 0 1px var(--ink),0 0 0 8px var(--spot)!important;z-index:20}
@@ -397,7 +401,7 @@ pre.code .k,pre.code .s,pre.code .n{color:var(--ink-2)}
 @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .story-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
 .story-step{
-  font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.13em;
+  font-family:var(--fm);font-size:11px;font-weight:500;letter-spacing:.13em;
   text-transform:uppercase;color:var(--muted);flex-shrink:0;
 }
 .story-txt{flex:1;min-width:260px;font-size:15.5px;line-height:1.55;color:var(--ink-2)}
@@ -413,12 +417,21 @@ body.storyOn{padding-bottom:118px}
   .hero{grid-template-columns:1fr}
   .hero-l{border-right:0;border-bottom:1px solid var(--hair)}
   .g2{grid-template-columns:1fr!important}
+  #cardMap{position:static}
 }
 @media (max-width:640px){
   .clockw{display:none}
   .view{padding:16px 16px 56px}
   .hero3d{margin:-16px -16px 24px}
   :root{--sp:16px}
+  .top{padding:14px 16px;gap:10px}
+  .brand,.tabs,.topright{flex-basis:100%}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:22px;scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent 100%);
+    mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent 100%)}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:8px 0 10px;white-space:nowrap}
+  .topright{margin-left:0;justify-content:flex-start}
 }
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important}
@@ -432,7 +445,7 @@ body.storyOn{padding-bottom:118px}
     </svg>
     <div>
       <div class="w">VIM<b>AA</b>N</div>
-      <div class="sub">Airfare Price Index</div>
+      <div class="sub">Ministry of Statistics · Problem SIH26056</div>
     </div>
   </div>
 
@@ -472,7 +485,6 @@ body.storyOn{padding-bottom:118px}
 
   <section class="hero3d">
     <div class="hero-copy">
-      <div class="eyebrow">Ministry of Statistics · Problem SIH26056</div>
       <h1>Every fare in India,<br>reduced to <em>one honest number</em></h1>
       <p>India's inflation figure still takes its airfare from 78 routes, checked by hand, once a month.
          VIMAAN reads 517 routes three times a day, and turns millions of
@@ -619,9 +631,12 @@ body.storyOn{padding-bottom:118px}
           <button aria-pressed="false" data-m="3d">3D surface</button>
           <button aria-pressed="true" data-m="grid">Price grid</button>
         </div>
-        <span class="lbl" style="margin:0">Height and colour both show the fare</span>
+        <span class="lbl" style="margin:0;text-transform:none;letter-spacing:normal">Height and colour both show the fare</span>
       </div>
-      <div id="surf3d" hidden><div class="surf3d-hint">Drag to orbit · scroll to zoom</div></div>
+      <div id="surf3d" hidden>
+        <div class="surf3d-hint">Drag to orbit · scroll to zoom</div>
+        <button class="surf3d-reset" id="surf3dReset" type="button">Reset view</button>
+      </div>
       <div class="chart" id="chSurface"><div class="tip"></div></div>
 
       <div class="grid g2" style="grid-template-columns:1fr 1fr;margin-top:15px">
@@ -715,9 +730,9 @@ body.storyOn{padding-bottom:118px}
       <p class="sub">One square is one day, for one group of routes. Only shortfalls are coloured, and they are published rather than hidden.</p>
       <div class="chart" id="chCover" style="margin-top:11px"><div class="tip"></div></div>
       <div class="legend" style="margin-top:11px">
-        <span class="lg"><i class="sq" style="background:var(--raised)"></i>Collected as planned</span>
+        <span class="lg"><i class="sq" style="background:var(--quiet-cell)"></i>Collected as planned</span>
         <span class="lg"><i class="sq" style="background:var(--q6)"></i>Slight shortfall</span>
-        <span class="lg"><i class="sq" style="background:var(--s1)"></i>Under 93%, flagged</span>
+        <span class="lg"><i class="sq" style="background:var(--warn-fill)"></i>Under 93%, flagged</span>
       </div>
     </section>
 
@@ -854,11 +869,19 @@ function lineChart(host,opt){
     svg.appendChild(el("path",a));
     var lx=X(xs-1),ly=Y(s.v[xs-1]);
     svg.appendChild(el("circle",{cx:lx,cy:ly,r:5,fill:s.c,stroke:css("--surface"),"stroke-width":2.5}));
-    if(opt.directLabel!==false){
-      var lb=el("text",{x:lx+10,y:ly+4,fill:s.c,"font-size":12.5,"font-weight":600,"font-family":css("--fm")});
-      lb.textContent=s.n;svg.appendChild(lb);
-    }
   });
+  if(opt.directLabel!==false){
+    /* de-collide end labels: when two series converge (e.g. the method
+       chart at its narrowest comparison window) their raw endpoints can
+       land on the same pixel — stack labels with a minimum gap instead */
+    var ends=opt.series.map(function(s){return {s:s,ly:Y(s.v[xs-1])}}).sort(function(a,b){return a.ly-b.ly});
+    var minGap=15;
+    for(i=1;i<ends.length;i++)if(ends[i].ly-ends[i-1].ly<minGap)ends[i].ly=ends[i-1].ly+minGap;
+    ends.forEach(function(e){
+      var lb=el("text",{x:X(xs-1)+10,y:e.ly+4,fill:e.s.c,"font-size":12.5,"font-weight":600,"font-family":css("--fm")});
+      lb.textContent=e.s.n;svg.appendChild(lb);
+    });
+  }
   var cross=el("line",{y1:P.t,y2:H-P.b,stroke:css("--axis"),"stroke-width":1.5,opacity:0});
   svg.appendChild(cross);
   var dots=opt.series.map(function(s){
@@ -937,7 +960,7 @@ function heatmap(host,opt){
     rc.style.cursor="pointer";svg.appendChild(rc);
     if(opt.label!==false){
       var t=el("text",{x:x+cw/2,y:y+ch/2+4,"text-anchor":"middle","font-size":11.5,"font-family":css("--fm"),
-        "font-weight":500,fill:readableOn(fillCol),"pointer-events":"none",opacity:dim?0.16:1});
+        "font-weight":500,fill:dim?css("--muted"):readableOn(fillCol),"pointer-events":"none",opacity:1});
       t.textContent=opt.cell?opt.cell(v):Math.round(v);svg.appendChild(t);
     }
     rc.addEventListener("mouseenter",function(){
@@ -1139,8 +1162,13 @@ function renderQuality(){
     }
     data.push(row);
   }
-  /* expected days sit almost at surface level; only shortfalls take colour */
-  var QUIET=css("--raised"),MID=css("--q6"),GAP=css("--s1");
+  /* expected days stay neutral and unsaturated so only shortfalls take
+     colour, but still clear the 3:1 non-text contrast floor against the
+     card — "quiet" is not "invisible" */
+  /* GAP reuses --warn-fill (not --s1) so "flagged" here matches the same
+     amber the lane-health list next to it already uses for "flagged" —
+     and stays visually distinct from MID's blue instead of near-duplicating it */
+  var QUIET=css("--quiet-cell"),MID=css("--q6"),GAP=css("--warn-fill");
   heatmap($("#chCover"),{rows:rows,cols:cols,data:data,cw:18,ch:26,pl:98,label:false,
     cellColor:function(v){return v>=97?QUIET:(v>=93?MID:GAP)},
     tipfmt:function(v){return v.toFixed(1)+"% of fares collected"},vlabel:"Collected"});
@@ -1240,6 +1268,7 @@ $$("#segAdj button").forEach(function(b){
   });
 });
 $("#win").addEventListener("input",renderMethod);
+$("#surf3dReset").addEventListener("click",function(){if(surf)surf.reset()});
 $("#oneCellBtn").addEventListener("click",function(){
   showOneCell=!showOneCell;
   this.setAttribute("aria-pressed",String(showOneCell));
@@ -1289,7 +1318,7 @@ var STORY=[
   {v:"v-surface",spot:"#cardSurface",after:function(){showOneCell=false;syncCellBtn();renderSurface()},
    t:"<b>But a flight has no single price.</b> Here is one route on one day, <b>80 different prices</b>, depending on when you fly and how early you book."},
   {v:"v-surface",spot:"#cardSurface",after:function(){showOneCell=true;syncCellBtn();renderSurface()},
-   t:"<b>A monthly manual check sees this much.</b> One box out of eighty. Everything greyed out is invisible to the current method, and it is <b>18% away</b> from the typical fare."},
+   t:function(){return "<b>A monthly manual check sees this much.</b> One box out of eighty. Everything greyed out is invisible to the current method, and it is <b>"+$("#cellGap").textContent+" away</b> from the typical fare.";}},
   {v:"v-method",spot:"#cardMethod",after:function(){$("#win").value=1;renderMethod()},
    t:"<b>Collecting more prices is only half of it.</b> Both lines here use identical fares with <b>zero real inflation</b>. Simple daily averaging (dashed) has already invented 13 points of price rises."},
   {v:"v-method",spot:"#cardMethod",after:function(){animateWin()},
@@ -1325,7 +1354,7 @@ function storyGo(i){
     target.scrollIntoView({behavior:"smooth",block:"center"});
   }
   $("#storyStep").textContent="Step "+(i+1)+" of "+STORY.length;
-  $("#storyTxt").innerHTML=st.t;
+  $("#storyTxt").innerHTML=(typeof st.t==="function")?st.t():st.t;
   $("#storyBack").disabled=(i===0);
   $("#storyNext").textContent=(i===STORY.length-1)?"Finish":"Next";
   $("#storyPips").innerHTML=STORY.map(function(_,k){
@@ -1634,10 +1663,11 @@ function buildSurf3d(grid){
     new THREE.Vector3(pos.getX(pi),pos.getY(pi),pos.getZ(pi)+0.10)]),
     new THREE.LineBasicMaterial({color:mkr})));
 
-  grp.rotation.x=-1.06;grp.rotation.z=0.30;
-  cam.position.set(0,-0.30,4.5);
+  var INIT_RX=-1.06,INIT_RZ=0.30,INIT_ZOOM=4.5;
+  grp.rotation.x=INIT_RX;grp.rotation.z=INIT_RZ;
+  cam.position.set(0,-0.30,INIT_ZOOM);
 
-  var drag=false,px=0,py=0,zoom=4.5;
+  var drag=false,px=0,py=0,zoom=INIT_ZOOM;
   var reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
   function down(e){drag=true;var c=e.touches?e.touches[0]:e;px=c.clientX;py=c.clientY}
   function move(e){
@@ -1660,7 +1690,10 @@ function buildSurf3d(grid){
     cam.position.z=zoom;e.preventDefault();
   },{passive:false});
 
-  surf={ren:ren,cam:cam,raf:0};
+  surf={ren:ren,cam:cam,raf:0,reset:function(){
+    grp.rotation.x=INIT_RX;grp.rotation.z=INIT_RZ;
+    zoom=INIT_ZOOM;cam.position.z=INIT_ZOOM;
+  }};
   (function loop(){
     surf.raf=requestAnimationFrame(loop);
     if(!drag&&!reduce)grp.rotation.z+=0.0022;
