@@ -81,6 +81,19 @@ def fix_hyperlink_theme(prs):
                                      encoding="UTF-8", standalone=True)
 
 
+def link_box(slide, x, y, w, h, url, fill=None, line=None):
+    """A filled bar that is clickable across its whole area.
+
+    A run-level hyperlink is painted with the theme's <a:hlink> colour no
+    matter what colour the run carries, which rules out light text on a dark
+    fill. Hanging the hyperlink off the shape leaves the text colours alone.
+    """
+    sh = box(slide, x, y, w, h, fill=fill if fill is not None else NAVY,
+             line=line if line is not None else NAVY)
+    sh.click_action.hyperlink.address = url
+    return sh
+
+
 def link_run(paragraph, text, url, size=8.5, color=None, bold=False):
     """A run that is actually clickable in PowerPoint and in the exported PDF.
 
@@ -327,24 +340,40 @@ p3 = par(tf, line=1.08)
 run(p3, "Skyscanner tells you what a ticket costs. VIMAAN tells the RBI whether to raise rates.",
     9.5, GOLD, italic=True)
 
+# The prototype is the strongest thing we have. Put the way in to it
+# immediately under the name, where the eye already is, not in the footer.
+lb = link_box(s, 0.36, 4.78, TXW, 0.44, WALKTHROUGH_URL)
+tf = lb.text_frame
+tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+tf.margin_left = tf.margin_right = Inches(0.10)
+p = tf.paragraphs[0]
+run(p, "      WATCH THE PROTOTYPE WALKTHROUGH", 11.5, WHITE, bold=True)
+run(p, "     drive.google.com", 9.5, GOLD, bold=True)
+
+# A drawn play mark, not a glyph. U+25B6 is missing from the deck's
+# typefaces, so PowerPoint embedded an entire symbol font to carry the one
+# character and the exported PDF grew by four megabytes.
+tri = s.shapes.add_shape(MSO_SHAPE.ISOSCELES_TRIANGLE,
+                         Inches(0.53), Inches(4.90), Inches(0.16), Inches(0.20))
+tri.rotation = 90
+tri.fill.solid(); tri.fill.fore_color.rgb = GOLD
+tri.line.fill.background()
+noshadow(tri)
+tri.click_action.hyperlink.address = WALKTHROUGH_URL
+
 # the index itself, not an airport photograph
-yh = plate(s, "n_hero_index.png", 0.36, 4.78, 4.34, frame=False)
+yh = plate(s, "n_hero_index.png", 0.36, 5.34, 4.34, frame=False)
 source(s, 0.36, yh + 0.04, 4.34,
        "Modelled on the VIMAAN sampling design. Base 2024 = 100, as in CPI 2024.")
 for i, (v, l) in enumerate([("517", "ROUTES, 3× A DAY"),
                             ("78 → 517", "VS DGCA TODAY"),
                             ("SDMX", "FEED INTO CPI 2024")]):
-    kpi(s, 4.84, 4.92 + i * 0.52, 1.66, v, l)
+    kpi(s, 4.84, 5.46 + i * 0.52, 1.66, v, l)
 
 # The deck is read as a PDF more often than it is presented. Whoever is
 # holding it should be one click away from the prototype running.
-rule(s, 0.36, 6.66, TXW, thick=1.6, color=NAVY)
-tf = tb(s, 0.36, 6.73, TXW, 0.26)
-p = par(tf, first=True, line=1.06)
-run(p, "WALKTHROUGH  ", 7.6, AMBER, bold=True)
-link_run(p, "Prototype video and screens on Google Drive",
-         WALKTHROUGH_URL, size=9, bold=True)
-tf = tb(s, 0.36, 7.02, TXW, 0.26)
+rule(s, 0.36, 7.00, TXW, thick=0.6)
+tf = tb(s, 0.36, 7.07, TXW, 0.26)
 p = par(tf, first=True, line=1.06)
 run(p, "LIVE  ", 7.2, AMBER, bold=True)
 link_run(p, "vimaan-console.vercel.app", LIVE_URL, size=8)
