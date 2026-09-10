@@ -50,7 +50,7 @@ Every response carries the engine that actually ran.
 ## Operating Context
 
 - Live, on-site SIH26056 finals demo round; idea-submission deck already
-  submitted (SIH2026-VIMAAN-SIH26056-BharatBytes.pptx/pdf).
+  submitted (26RBU142_SIH26056_BharatBytes.pptx/pdf).
 - Deployed at vimaan-console.vercel.app (Vercel Standard Deployment Protection
   enabled — only the production alias is publicly reachable; deployment-specific
   URLs show a login page). One Vercel project serves both surfaces: the static
@@ -135,7 +135,7 @@ Every response carries the engine that actually ran.
 
 ## Evidence on Hand
 
-- `SIH2026-VIMAAN-SIH26056-BharatBytes.pptx/pdf` — submitted idea-round deck.
+- `26RBU142_SIH26056_BharatBytes.pptx/pdf` — submitted idea-round deck.
 - `backend/README.md` — authoritative real-vs-simulated table; consult before
   any copy change that states what VIMAAN "does" or "measures."
 - `SOLUTION_PLAN.md` — full technical plan and proposed production stack

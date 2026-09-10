@@ -22,7 +22,7 @@ from _prims import (Presentation, Inches, Pt, RGBColor, PP_ALIGN, MSO_ANCHOR,
                     GREY_FILL, GREY_LINE,
                     noshadow, tb, par, run, box, eyebrow, card, chip, pic, find, drop)
 
-OUT = os.path.join(HERE, "SIH2026-VIMAAN-SIH26056-BharatBytes.pptx")
+OUT = os.path.join(HERE, "26RBU142_SIH26056_BharatBytes.pptx")
 
 GREEN = RGBColor(0x1B, 0x7A, 0x3C)
 GOLD  = RGBColor(0xF3, 0xC6, 0x7A)

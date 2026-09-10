@@ -57,8 +57,8 @@ build/ic_*.png
 build/p_*.png
 
 # duplicates of the root-level deliverables
-build/SIH2026-*.pptx
-build/SIH2026-*.pdf
+build/26RBU142_*.pptx
+build/26RBU142_*.pdf
 build/SOLUTION_PLAN.md
 build/*.bak.pptx
 build/*PREVIOUS*.pptx
