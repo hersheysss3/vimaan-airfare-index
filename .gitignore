@@ -33,6 +33,7 @@ build/_patch*.py
 build/_fitfix.py
 build/_bulletin.py
 build/_derobot.py
+build/_links.py
 build/_sheet*.png
 build/_fix*.png
 # ...but _prims.py is a real dependency of make_final.py

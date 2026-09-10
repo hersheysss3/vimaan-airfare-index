@@ -47,6 +47,52 @@ def plate(slide, name, x, y, w, frame=True):
     return y + h
 
 
+WALKTHROUGH_URL = ("https://drive.google.com/drive/folders/"
+                   "1umIfrbjnLhSdqTqecGn315W5UIARY4um")
+LIVE_URL = "https://vimaan-console.vercel.app"
+REPO_URL = "https://github.com/hersheysss3/vimaan-airfare-index"
+
+
+def fix_hyperlink_theme(prs):
+    """Make hyperlinks obey the deck palette.
+
+    PowerPoint paints any hyperlinked run with the theme's <a:hlink> colour,
+    which overrides the colour set on the run. The default is a bright blue
+    that appears nowhere else in this deck. Repoint the theme instead.
+    """
+    from pptx.oxml.ns import qn
+    hexes = ("1F497D", "1F497D")           # navy for new and followed links
+    for master in prs.slide_masters:
+        theme = master.part.part_related_by(
+            "http://schemas.openxmlformats.org/officeDocument/2006/"
+            "relationships/theme")
+        root = theme._element if hasattr(theme, "_element") else None
+        if root is None:
+            from lxml import etree
+            root = etree.fromstring(theme.blob)
+        for tag, hx in zip(("hlink", "folHlink"), hexes):
+            for el in root.iter(qn("a:" + tag)):
+                for child in list(el):
+                    el.remove(child)
+                srgb = el.makeelement(qn("a:srgbClr"), {"val": hx})
+                el.append(srgb)
+        from lxml import etree
+        theme._blob = etree.tostring(root, xml_declaration=True,
+                                     encoding="UTF-8", standalone=True)
+
+
+def link_run(paragraph, text, url, size=8.5, color=None, bold=False):
+    """A run that is actually clickable in PowerPoint and in the exported PDF.
+
+    Printing a URL as plain text looks identical on screen and does nothing
+    when clicked, which is worse than useless in a deck read as a PDF.
+    """
+    r = run(paragraph, text, size, color if color is not None else NAVY,
+            bold=bold)
+    r.hyperlink.address = url
+    return r
+
+
 def caption(slide, x, y, w, text, size=7.5):
     tf = tb(slide, x, y, w, 0.24)
     p = par(tf, first=True, line=1.06)
@@ -289,6 +335,21 @@ for i, (v, l) in enumerate([("517", "ROUTES, 3× A DAY"),
                             ("78 → 517", "VS DGCA TODAY"),
                             ("SDMX", "FEED INTO CPI 2024")]):
     kpi(s, 4.84, 4.92 + i * 0.52, 1.66, v, l)
+
+# The deck is read as a PDF more often than it is presented. Whoever is
+# holding it should be one click away from the prototype running.
+rule(s, 0.36, 6.66, TXW, thick=1.6, color=NAVY)
+tf = tb(s, 0.36, 6.73, TXW, 0.26)
+p = par(tf, first=True, line=1.06)
+run(p, "WALKTHROUGH  ", 7.6, AMBER, bold=True)
+link_run(p, "Prototype video and screens on Google Drive",
+         WALKTHROUGH_URL, size=9, bold=True)
+tf = tb(s, 0.36, 7.02, TXW, 0.26)
+p = par(tf, first=True, line=1.06)
+run(p, "LIVE  ", 7.2, AMBER, bold=True)
+link_run(p, "vimaan-console.vercel.app", LIVE_URL, size=8)
+run(p, "        SOURCE  ", 7.2, AMBER, bold=True)
+link_run(p, "github.com/hersheysss3/vimaan-airfare-index", REPO_URL, size=8)
 
 
 # =============================================================== SLIDE 2
@@ -619,6 +680,14 @@ for k, v in DIST:
     yy += 0.245
     rule(s, CX[2], yy - 0.035, CW3, thick=0.4)
 
+# the evidence column should say where the working thing can be seen
+tf = tb(s, CX[2], yy + 0.05, CW3, 0.24)
+p = par(tf, first=True, line=1.02)
+run(p, "SEE IT RUN  ", 7.2, GREEN, bold=True)
+link_run(p, "walkthrough", WALKTHROUGH_URL, size=7.4, bold=True)
+run(p, "  ·  ", 7.4, FAINT)
+link_run(p, "vimaan-console.vercel.app", LIVE_URL, size=7.4)
+
 
 
 # ---- no inherited theme shadows anywhere ------------------------------------
@@ -626,5 +695,6 @@ for sl in prs.slides:
     for sh in sl.shapes:
         noshadow(sh)
 
+fix_hyperlink_theme(prs)
 prs.save(OUT)
 print("saved", OUT, os.path.getsize(OUT) // 1024, "KB")
