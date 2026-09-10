@@ -137,7 +137,24 @@ class IndexPoint(BaseModel):
 
     revision: str = "none"
     provisional: bool = False
+    #: why, in words, when it is. A boolean that does not say what tripped it
+    #: makes a reviewer guess, and they will guess wrong.
+    provisional_reason: Optional[str] = None
     repro_hash: Optional[str] = None
+
+    # Published alongside the headline figure rather than instead of it.
+    #: seasonally adjusted level, and the engine that actually produced it —
+    #: the engine string is part of the figure, not a footnote
+    value_sa: Optional[float] = None
+    sa_engine: Optional[str] = None
+    #: the same month on an acquisition basis (priced when booked) rather than
+    #: departure basis (priced when flown); ONS publishes both and so do we
+    value_acquisition: Optional[float] = None
+    #: an independent estimator over identical data, kept as a cross-check
+    value_tpd: Optional[float] = None
+    #: GEKS minus TPD, in index points. Small is corroboration; large is a
+    #: warning that the two methods disagree about this month
+    tpd_divergence: Optional[float] = None
 
     def compute_hash(self, *parts: str) -> str:
         """Fingerprint tying this figure to the exact inputs that produced it."""

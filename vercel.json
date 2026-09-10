@@ -1,22 +1,35 @@
 {
   "cleanUrls": true,
   "outputDirectory": "prototype/web",
+  "functions": {
+    "api/index.py": {
+      "memory": 2048,
+      "maxDuration": 300
+    }
+  },
+  "rewrites": [
+    { "source": "/v1/:path*", "destination": "/api/index" },
+    { "source": "/api/v1/:path*", "destination": "/api/index" },
+    { "source": "/api/cron/:path*", "destination": "/api/index" },
+    { "source": "/docs", "destination": "/api/index" },
+    { "source": "/openapi.json", "destination": "/api/index" }
+  ],
+  "crons": [
+    { "path": "/api/cron/collect", "schedule": "0 2,10,18 * * *" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/v1/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=60, s-maxage=300, stale-while-revalidate=600" }
       ]
     }
   ]

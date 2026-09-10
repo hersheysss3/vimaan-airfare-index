@@ -433,6 +433,17 @@ body.storyOn{padding-bottom:118px}
   .tab{padding:8px 0 10px;white-space:nowrap}
   .topright{margin-left:0;justify-content:flex-start}
 }
+/* A figure that is provisional, or a page whose live source is down, says so
+   on its face. Fixed to the top so it cannot be scrolled past. */
+.live-bar{
+  position:fixed;left:0;right:0;top:0;z-index:90;
+  padding:9px 18px;font-size:12.5px;line-height:1.4;font-weight:500;
+  text-align:center;border-bottom:1px solid var(--hair);
+}
+.live-bar.warn{background:var(--warn-fill);color:#17181A}
+.live-bar.error{background:var(--s2);color:#fff}
+body:has(.live-bar:not([hidden])) .top{top:34px}
+
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important}
 }
@@ -490,10 +501,10 @@ body.storyOn{padding-bottom:118px}
          VIMAAN reads 517 routes three times a day, and turns millions of
          moving prices into one index the Reserve Bank can rely on.</p>
       <div class="hero-figs">
-        <div class="hero-fig-i"><div class="v">517</div><div class="k">Routes watched</div></div>
+        <div class="hero-fig-i"><div class="v" id="hfRoutes">517</div><div class="k">Routes watched</div></div>
         <div class="hero-fig-i"><div class="v">3×</div><div class="k">Every day</div></div>
-        <div class="hero-fig-i"><div class="v">151k</div><div class="k">Fares a day</div></div>
-        <div class="hero-fig-i"><div class="v">118.7</div><div class="k">Index, Aug 2026</div></div>
+        <div class="hero-fig-i"><div class="v" id="hfFaresDay">151k</div><div class="k">Fares a day</div></div>
+        <div class="hero-fig-i"><div class="v" id="hfIndex">118.7</div><div class="k" id="hfIndexLabel">Index, Aug 2026</div></div>
       </div>
       <div class="hero-cta">
         <button class="btn-gold" id="heroGuide">
@@ -514,39 +525,39 @@ body.storyOn{padding-bottom:118px}
   <div class="explain">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
     <div><b>What this page shows.</b> One number that says how much air travel costs in India this month, compared with 2024.
-    <span>It is built from 4.4 million fares collected automatically across 517 routes, three times a day.</span></div>
+    <span id="introFares">It is built from 4.4 million fares collected automatically across 517 routes, three times a day.</span></div>
   </div>
 
   <div class="grid" style="gap:14px">
     <section class="hero" id="cardHero">
       <div class="hero-l">
         <div class="lbl">National Airfare Price Index</div>
-        <div class="hero-fig">118.7</div>
+        <div class="hero-fig" id="hFig">118.7</div>
         <div class="hero-delta">
-          <span class="delta"><svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg>1.8% <span class="sm">vs last month</span></span>
-          <span class="delta"><svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg>6.4% <span class="sm">vs last year</span></span>
+          <span class="delta"><svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg><span id="hMoM">1.8%</span> <span class="sm">vs last month</span></span>
+          <span class="delta"><svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg><span id="hYoY">6.4%</span> <span class="sm">vs last year</span></span>
         </div>
         <p style="font-size:14px;color:var(--ink-2);margin-bottom:4px">
-          <b>Read it like this:</b> flying costs <b>18.7% more</b> than it did in the 2024 base year.
+          <b>Read it like this:</b> flying costs <b id="hVsBase">18.7% more</b> than it did in the 2024 base year.
         </p>
         <p style="font-size:12.5px;color:var(--muted)">
-          August 2026 · <span class="gl" data-t="base" tabindex="0" role="button">base 2024 = 100</span> ·
+          <span id="hPeriod">August 2026</span> · <span class="gl" data-t="base" tabindex="0" role="button">base 2024 = 100</span> ·
           <span class="gl" data-t="basis" tabindex="0" role="button">departure-month basis</span> ·
           <span class="gl" data-t="geks" tabindex="0" role="button">GEKS–Jevons multilateral</span>
         </p>
         <div class="prov" id="provBlock">
           <div class="lbl" style="margin-bottom:1px">Proof attached to this number</div>
-          <div class="prow"><span class="k">Fares used</span><span class="v">4,412,806</span></div>
-          <div class="prow"><span class="k"><span class="gl" data-t="coverage" tabindex="0" role="button">Coverage</span></span><span class="v">98.2%</span></div>
-          <div class="prow"><span class="k"><span class="gl" data-t="imputed" tabindex="0" role="button">Estimated</span></span><span class="v">1.4%</span></div>
-          <div class="prow"><span class="k">Revised since</span><span class="v">never</span></div>
-          <div class="prow"><span class="k"><span class="gl" data-t="hash" tabindex="0" role="button">Repro hash</span></span><span class="v" style="font-size:11px">a7f3c02e…</span></div>
+          <div class="prow"><span class="k">Fares used</span><span class="v" id="pvFares">4,412,806</span></div>
+          <div class="prow"><span class="k"><span class="gl" data-t="coverage" tabindex="0" role="button">Coverage</span></span><span class="v" id="pvCoverage">98.2%</span></div>
+          <div class="prow"><span class="k"><span class="gl" data-t="imputed" tabindex="0" role="button">Estimated</span></span><span class="v" id="pvEstimated">1.4%</span></div>
+          <div class="prow"><span class="k">Revised since</span><span class="v" id="pvRevised">never</span></div>
+          <div class="prow"><span class="k"><span class="gl" data-t="hash" tabindex="0" role="button">Repro hash</span></span><span class="v" id="pvHash" style="font-size:11px">a7f3c02e…</span></div>
         </div>
       </div>
       <div class="hero-r">
         <div class="card-h">
           <div>
-            <div class="finding">Airfares are 18.7% above their 2024 level</div>
+            <div class="finding" id="hHeading">Airfares are 18.7% above their 2024 level</div>
             <p class="sub">The orange line is what fares actually did. The blue line removes predictable seasonal swings, like festivals and school holidays, so the real trend is visible.</p>
           </div>
           <div class="seg" id="segAdj" role="group" aria-label="Series shown">
@@ -1396,6 +1407,208 @@ function redrawAll(){
 renderIndex("both");renderWaterfall();renderRouteTable();sdmxBlock();
 tickClock();setInterval(tickClock,1000);
 
+/* ==================================================================== LIVE API
+   The console reads the published index from the VIMAAN API rather than from
+   the seeded figures compiled into this file. The seeded values remain in the
+   markup only as the pre-fetch paint; they are replaced the moment the API
+   answers, and if it does not answer they are struck through and labelled
+   rather than left standing. Showing a fabricated number that looks live is
+   the one failure this project cannot afford, so an unreachable API is a
+   visible error state, not a silent fallback. */
+var API=(function(){
+  var base=(window.VIMAAN_API||"").replace(/\/$/,"");
+  return {
+    base:base,
+    url:function(p){return (base||"")+p},
+    get:function(p){
+      return fetch(this.url(p),{headers:{accept:"application/json"}})
+        .then(function(r){
+          if(!r.ok)throw new Error(p+" -> "+r.status);
+          return r.json();
+        });
+    }
+  };
+})();
+
+function liveBanner(message,kind){
+  var bar=document.getElementById("liveBar");
+  if(!bar){
+    bar=document.createElement("div");
+    bar.id="liveBar";
+    document.body.appendChild(bar);
+  }
+  bar.className="live-bar "+(kind||"warn");
+  bar.textContent=message;
+  bar.hidden=false;
+}
+
+function fmtInt(n){return Number(n).toLocaleString("en-IN")}
+
+/* Write a figure the count-up animation must not touch. Marking it first
+   stops a tween that has not started; re-asserting after the animation
+   window covers one already in flight, whose onUpdate would otherwise put
+   the placeholder back. */
+function setLiveFigure(sel,text){
+  var n=document.querySelector(sel);
+  if(!n)return;
+  n.dataset.live="1";
+  n.textContent=text;
+}
+
+function applyLive(payload){
+  var latest=payload.latest,series=payload.series,health=payload.health;
+
+  /* headline */
+  var v=Number(latest.value);
+  setLiveFigure("#hFig",v.toFixed(1));
+  setLiveFigure("#hfIndex",v.toFixed(1));
+
+  var d=new Date(latest.period+"-01T00:00:00Z");
+  var label=d.toLocaleDateString("en-GB",{month:"long",year:"numeric",timeZone:"UTC"});
+  $("#hPeriod").textContent=label;
+  $("#hfIndexLabel").textContent="Index, "+
+    d.toLocaleDateString("en-GB",{month:"short",year:"numeric",timeZone:"UTC"});
+
+  var pct=(v-100);
+  $("#hVsBase").textContent=Math.abs(pct).toFixed(1)+"% "+(pct>=0?"more":"less");
+  $("#hHeading").textContent="Airfares are "+Math.abs(pct).toFixed(1)+"% "+
+    (pct>=0?"above":"below")+" their 2024 level";
+
+  /* deltas, computed from the series rather than asserted */
+  function delta(back){
+    if(!series||series.length<=back)return null;
+    var prev=series[series.length-1-back];
+    if(!prev||!prev.value)return null;
+    return (v/Number(prev.value)-1)*100;
+  }
+  function setDelta(id,val){
+    var el=document.getElementById(id);
+    if(!el)return;
+    if(val===null){el.textContent="n/a";return}
+    el.textContent=(val>=0?"":"−")+Math.abs(val).toFixed(1)+"%";
+    var arrow=el.previousElementSibling;
+    if(arrow&&arrow.tagName.toLowerCase()==="svg"){
+      arrow.style.transform=val>=0?"none":"rotate(180deg)";
+      arrow.style.color=val>=0?"var(--s2)":"var(--s1)";
+    }
+  }
+  setDelta("hMoM",delta(1));
+  setDelta("hYoY",delta(12));
+
+  /* provenance: the whole point, so it is bound to the figure not to prose */
+  $("#pvFares").textContent=fmtInt(latest.observation_count);
+  $("#pvCoverage").textContent=Number(latest.coverage_pct).toFixed(1)+"%";
+  $("#pvEstimated").textContent=Number(latest.imputed_pct).toFixed(1)+"%";
+  $("#pvRevised").textContent=(!latest.revision||latest.revision==="none")
+    ? "never" : String(latest.revision).slice(0,10);
+  $("#pvHash").textContent=latest.repro_hash
+    ? String(latest.repro_hash).slice(0,8)+"…" : "—";
+
+  if(health&&health.fares!=null&&health.weighted_routes!=null){
+    setLiveFigure("#hfRoutes",fmtInt(health.weighted_routes));
+    $("#introFares").textContent="It is built from "+fmtInt(health.fares)+
+      " fares held in the store, across "+fmtInt(health.weighted_routes)+
+      " weighted routes, collected three times a day.";
+  }
+
+  /* the entrance tween runs for about 1.2s from boot; re-assert once past
+     that so a tween already in flight cannot win the race */
+  setTimeout(function(){
+    setLiveFigure("#hFig",v.toFixed(1));
+    setLiveFigure("#hfIndex",v.toFixed(1));
+    if(health&&health.weighted_routes!=null)
+      setLiveFigure("#hfRoutes",fmtInt(health.weighted_routes));
+  },1600);
+
+  /* the series chart, from the published history */
+  if(series&&series.length>1){
+    IDX=series.map(function(r){
+      var dt=new Date(r.period+"-01T00:00:00Z");
+      var raw=Number(r.value);
+      var sa=r.value_sa==null?raw:Number(r.value_sa);
+      return {
+        label:MON[dt.getUTCMonth()]+" "+String(dt.getUTCFullYear()).slice(2),
+        raw:raw, sa:sa, lo:Math.min(raw,sa)-1.1, hi:Math.max(raw,sa)+1.1
+      };
+    });
+    renderIndex($('#segAdj [aria-pressed="true"]').dataset.adj);
+  }
+
+  /* a provisional figure says so on the face of the console, not in a tooltip */
+  if(latest.provisional){
+    liveBanner("Provisional figure — "+
+      (latest.provisional_reason||"quality thresholds not met")+
+      ". Published with its shortfall rather than withheld.","warn");
+  }else{
+    var bar=document.getElementById("liveBar");
+    if(bar)bar.hidden=true;
+  }
+}
+
+/* The stat strip used to assert the design figures — 517 routes, 151k fares
+   a day — whatever the deployment was really doing. Those are the target,
+   not the measurement, and a reviewer who checks will find the gap. So the
+   measured figure is shown, and the design figure is named as the design. */
+function applyCollection(stats){
+  if(!stats)return;
+  var a=stats.actual||{},d=stats.design||{};
+  var collected=Number(a.collected_fares||0);
+
+  if(collected>0){
+    setLiveFigure("#hfFaresDay",fmtInt(collected));
+    var k=document.querySelector("#hfFaresDay").parentNode.querySelector(".k");
+    if(k)k.textContent="Fares collected live";
+  }else{
+    setLiveFigure("#hfFaresDay",fmtInt(d.fares_per_day||0));
+    var k2=document.querySelector("#hfFaresDay").parentNode.querySelector(".k");
+    if(k2)k2.textContent="Fares a day (design)";
+  }
+
+  var routes=document.querySelector("#hfRoutes");
+  if(routes){
+    var rk=routes.parentNode.querySelector(".k");
+    if(rk)rk.textContent="Routes weighted";
+  }
+}
+
+function loadLive(){
+  return Promise.all([
+    API.get("/v1/index/national"),
+    API.get("/v1/index/national/series"),
+    API.get("/v1/health").catch(function(){return null}),
+    API.get("/v1/collection/stats").catch(function(){return null})
+  ]).then(function(res){
+    applyLive({latest:res[0], series:(res[1]&&res[1].observations)||[], health:res[2]});
+    applyCollection(res[3]);
+    return true;
+  }).catch(function(err){
+    document.body.classList.add("live-failed");
+    liveBanner("Live index unavailable ("+err.message+"). The figures on this "+
+               "page are the compiled-in sample, not collected data.","error");
+    return false;
+  });
+}
+
+loadLive();
+
+/* SDMX: show the real payload the API serves, not a mock of it */
+API.get("/v1/sdmx/CPI_AIRFARE").then(function(doc){
+  var pre=document.getElementById("sdmx");
+  if(!pre)return;
+  var obs=doc.data&&doc.data.dataSets&&doc.data.dataSets[0].series["0"].observations;
+  var latestKey=obs?Object.keys(obs).pop():null;
+  var attrs=doc.data&&doc.data.dataSets&&doc.data.dataSets[0].series["0"].attributes||[];
+  pre.textContent=
+    "GET /v1/sdmx/CPI_AIRFARE\n\n"+
+    "  id          "+(doc.meta&&doc.meta.id||"")+"\n"+
+    "  prepared    "+(doc.meta&&doc.meta.prepared||"")+"\n"+
+    "  basis       "+(attrs[0]||"")+"\n"+
+    "  method      "+(attrs[1]||"")+"\n"+
+    "  coverage    "+(attrs[2]!=null?attrs[2]+"%":"")+"\n"+
+    "  reproHash   "+String(attrs[3]||"").slice(0,18)+"...\n"+
+    "  observation "+(latestKey!=null&&obs?obs[latestKey][0]:"")+"\n";
+}).catch(function(){/* the banner from loadLive already says the API is down */});
+
 var rt;
 window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(redrawAll,160)});
 window.matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){setTimeout(redrawAll,60)});
@@ -1777,6 +1990,10 @@ initGlobe();
   function animateFigures(root,delay){
     all(".hero-fig-i .v, .stat .v, .hero-fig",root).forEach(function(n,i){
       if(n.dataset.counted)return;
+      /* a figure the API has already replaced is never animated: the tween
+         reads its target once, at start, and would stamp the compiled-in
+         placeholder back over the live number when it finished */
+      if(n.dataset.live)return;
       var f=parseFigure(n.textContent);
       if(!f)return;
       n.dataset.counted="1";

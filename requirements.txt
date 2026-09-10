@@ -1,0 +1,11 @@
+# Runtime dependencies for the Vercel Python function in api/.
+# Deliberately not the same file as backend/requirements.txt: uvicorn and
+# pytest are development tools and Vercel supplies its own ASGI server, so
+# shipping them would only make the deployment bigger and slower to build.
+fastapi>=0.141
+pydantic>=2.13
+httpx>=0.28
+numpy>=2.1
+pandas>=2.3
+statsmodels>=0.15
+psycopg[binary]>=3.2

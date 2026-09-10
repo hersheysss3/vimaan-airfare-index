@@ -6,3 +6,4 @@ numpy>=2.1
 pandas>=2.3
 statsmodels>=0.15
 pytest>=9.1
+psycopg[binary]>=3.2

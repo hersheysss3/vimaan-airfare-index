@@ -11,6 +11,9 @@ luma-auto-approve/
 .gstack/
 .vercel/
 .claude/
+.agents/
+skills-lock.json
+.impeccable/
 
 # scratch renders and intermediate exports
 build/off/

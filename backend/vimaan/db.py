@@ -89,6 +89,9 @@ CREATE TABLE IF NOT EXISTS gold_surface (
     cabin        TEXT NOT NULL,
     median_fare  REAL NOT NULL,
     n_obs        INTEGER NOT NULL,
+    -- an imputed cell is never allowed to look like an observed one
+    imputed          INTEGER NOT NULL DEFAULT 0,
+    imputation_basis TEXT,
     PRIMARY KEY (period, route, lead_bucket, cabin)
 );
 
@@ -112,9 +115,44 @@ CREATE TABLE IF NOT EXISTS gold_index (
     route_count       INTEGER NOT NULL,
     revision          TEXT NOT NULL DEFAULT 'none',
     provisional       INTEGER NOT NULL DEFAULT 0,
+    provisional_reason TEXT,
     repro_hash        TEXT,
-    published_at      TEXT NOT NULL
+    published_at      TEXT NOT NULL,
+    -- the seasonally adjusted figure, and which engine actually produced it
+    value_sa          REAL,
+    sa_engine         TEXT,
+    -- the same month computed on an acquisition basis, published in parallel
+    value_acquisition REAL,
+    -- an independent estimator run on the same data as a cross-check; a wide
+    -- divergence is a flag on the figure, not a number to quietly average in
+    value_tpd         REAL,
+    tpd_divergence    REAL
 );
+
+-- Model fits worth publishing alongside the figures: the hedonic regression's
+-- diagnostics, the seasonal engine's holiday coefficients. Stored as JSON
+-- because their shape is the model's business, not the schema's.
+CREATE TABLE IF NOT EXISTS gold_model (
+    name        TEXT NOT NULL,
+    period      TEXT NOT NULL DEFAULT '',
+    fitted_at   TEXT NOT NULL,
+    payload     TEXT NOT NULL,
+    PRIMARY KEY (name, period)
+);
+
+-- Every republication of a period that changed its value. A statistical
+-- series that revises without saying so is not auditable.
+CREATE TABLE IF NOT EXISTS gold_revision (
+    id           INTEGER PRIMARY KEY,
+    period       TEXT NOT NULL,
+    revised_at   TEXT NOT NULL,
+    old_value    REAL NOT NULL,
+    new_value    REAL NOT NULL,
+    old_hash     TEXT,
+    new_hash     TEXT,
+    reason       TEXT NOT NULL DEFAULT 'recomputation'
+);
+CREATE INDEX IF NOT EXISTS ix_revision_period ON gold_revision(period);
 
 CREATE TABLE IF NOT EXISTS route_weight (
     route      TEXT NOT NULL,
@@ -127,15 +165,65 @@ CREATE TABLE IF NOT EXISTS route_weight (
 """
 
 
-def connect(path: str = DEFAULT_PATH) -> sqlite3.Connection:
-    conn = sqlite3.connect(path)
+#: Columns added after the first schema shipped. CREATE TABLE IF NOT EXISTS
+#: will not add a column to a table that already exists, so a database created
+#: by an earlier version needs them applied explicitly. Adding a nullable
+#: column is the one schema change SQLite does cheaply and Postgres does
+#: identically, which is why every addition here is nullable.
+_ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
+    ("gold_surface", "imputed", "INTEGER NOT NULL DEFAULT 0"),
+    ("gold_surface", "imputation_basis", "TEXT"),
+    ("gold_index", "provisional_reason", "TEXT"),
+    ("gold_index", "value_sa", "REAL"),
+    ("gold_index", "sa_engine", "TEXT"),
+    ("gold_index", "value_acquisition", "REAL"),
+    ("gold_index", "value_tpd", "REAL"),
+    ("gold_index", "tpd_divergence", "REAL"),
+)
+
+
+def _migrate(conn: sqlite3.Connection) -> list[str]:
+    """Bring an existing database up to the current schema. Idempotent."""
+    applied = []
+    for table, column, decl in _ADDED_COLUMNS:
+        cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if not cols:            # table does not exist yet; SCHEMA just made it
+            continue
+        if column in cols:
+            continue
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+        applied.append(f"{table}.{column}")
+    return applied
+
+
+def connect(path: Optional[str] = None) -> sqlite3.Connection:
+    """Open the store.
+
+    Postgres when a DSN is supplied (or DATABASE_URL is set, which is how it
+    arrives on Vercel), SQLite otherwise. Both return something that answers
+    to the sqlite3.Connection interface, so nothing above this line has to
+    know which one it got — see pgcompat for what that costs.
+    """
+    dsn = path or os.environ.get("DATABASE_URL") or DEFAULT_PATH
+
+    from .pgcompat import PgConnection, is_postgres_dsn
+    if is_postgres_dsn(dsn):
+        conn = PgConnection(dsn)
+        conn.executescript(SCHEMA)
+        conn.commit()
+        _migrate(conn)
+        conn.commit()
+        return conn                                   # type: ignore[return-value]
+
+    conn = sqlite3.connect(dsn)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
 
 
 @contextmanager
-def session(path: str = DEFAULT_PATH) -> Iterator[sqlite3.Connection]:
+def session(path: Optional[str] = None) -> Iterator[sqlite3.Connection]:
     conn = connect(path)
     try:
         yield conn
@@ -230,18 +318,85 @@ def get_weights(conn: sqlite3.Connection, base_year: int = 2024) -> dict[str, fl
     return {r["route"]: r["share"] for r in rows}
 
 
-def put_index_point(conn: sqlite3.Connection, point: IndexPoint) -> None:
+def put_index_point(conn: sqlite3.Connection, point: IndexPoint) -> Optional[dict]:
+    """Publish a figure, recording a revision if it restates a published one.
+
+    Returns the revision row when the value actually changed, so a caller can
+    surface it. Republishing an identical value is not a revision and is not
+    recorded — otherwise every pipeline re-run would look like a restatement.
+    """
+    prior = conn.execute(
+        "SELECT value, repro_hash FROM gold_index WHERE period = ?",
+        (point.period,)).fetchone()
+
+    revision = None
+    if prior is not None and abs(float(prior["value"]) - point.value) > 1e-9:
+        now = datetime.utcnow().isoformat(timespec="seconds")
+        conn.execute(
+            """INSERT INTO gold_revision
+                 (period, revised_at, old_value, new_value, old_hash, new_hash,
+                  reason)
+               VALUES (?,?,?,?,?,?,?)""",
+            (point.period, now, float(prior["value"]), point.value,
+             prior["repro_hash"], point.repro_hash, "recomputation"),
+        )
+        point.revision = now
+        revision = {
+            "period": point.period,
+            "old_value": float(prior["value"]),
+            "new_value": point.value,
+            "revised_at": now,
+        }
+
     conn.execute(
         """INSERT OR REPLACE INTO gold_index
              (period, value, basis, method, window, coverage_pct, imputed_pct,
               observation_count, route_count, revision, provisional,
-              repro_hash, published_at)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+              provisional_reason, repro_hash, published_at, value_sa,
+              sa_engine, value_acquisition, value_tpd, tpd_divergence)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (point.period, point.value, point.basis, point.method, point.window,
          point.coverage_pct, point.imputed_pct, point.observation_count,
          point.route_count, point.revision, 1 if point.provisional else 0,
-         point.repro_hash, datetime.utcnow().isoformat(timespec="seconds")),
+         point.provisional_reason, point.repro_hash,
+         datetime.utcnow().isoformat(timespec="seconds"),
+         point.value_sa, point.sa_engine, point.value_acquisition,
+         point.value_tpd, point.tpd_divergence),
     )
+    return revision
+
+
+def put_model(conn: sqlite3.Connection, name: str, payload: dict,
+              period: str = "") -> None:
+    """Store a fitted model's diagnostics so a figure can be defended later."""
+    conn.execute(
+        """INSERT OR REPLACE INTO gold_model (name, period, fitted_at, payload)
+           VALUES (?,?,?,?)""",
+        (name, period, datetime.utcnow().isoformat(timespec="seconds"),
+         json.dumps(payload, default=str)),
+    )
+
+
+def get_model(conn: sqlite3.Connection, name: str,
+              period: str = "") -> Optional[dict]:
+    row = conn.execute(
+        "SELECT payload, fitted_at FROM gold_model WHERE name = ? AND period = ?",
+        (name, period)).fetchone()
+    if not row:
+        return None
+    out = json.loads(row["payload"])
+    out["_fitted_at"] = row["fitted_at"]
+    return out
+
+
+def get_revisions(conn: sqlite3.Connection,
+                  period: Optional[str] = None) -> list[dict]:
+    sql = "SELECT * FROM gold_revision"
+    args: tuple = ()
+    if period:
+        sql += " WHERE period = ?"
+        args = (period,)
+    return [dict(r) for r in conn.execute(sql + " ORDER BY revised_at DESC", args)]
 
 
 def get_series(conn: sqlite3.Connection) -> list[dict]:
