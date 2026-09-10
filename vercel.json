@@ -15,7 +15,7 @@
     { "source": "/openapi.json", "destination": "/api/index" }
   ],
   "crons": [
-    { "path": "/api/cron/collect", "schedule": "0 2,10,18 * * *" }
+    { "path": "/api/cron/collect", "schedule": "30 20 * * *" }
   ],
   "headers": [
     {

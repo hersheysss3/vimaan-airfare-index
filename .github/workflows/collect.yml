@@ -1,0 +1,59 @@
+# Three collections a day, which is what the index design specifies.
+#
+# This lives here rather than in vercel.json because Vercel's Hobby plan
+# permits one cron per day and the design calls for three. Rather than quietly
+# reduce the collection rate and leave the "three times a day" claim standing,
+# the schedule moved somewhere that can honour it. vercel.json keeps a daily
+# cron as a backstop, so collection still happens if this workflow is disabled.
+#
+# Requires one repository secret:
+#   CRON_SECRET  — the same value set in the Vercel project's environment
+#
+#   gh secret set CRON_SECRET --body "<value>"
+
+name: collect
+
+on:
+  schedule:
+    # 02:00, 10:00 and 18:00 IST (UTC+5:30) -> 20:30, 04:30, 12:30 UTC
+    - cron: "30 20 * * *"
+    - cron: "30 4 * * *"
+    - cron: "30 12 * * *"
+  workflow_dispatch:
+    inputs:
+      routes:
+        description: "how many of the heaviest routes to collect"
+        default: "20"
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Trigger a collection pass
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ROUTES: ${{ github.event.inputs.routes || '20' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET is not set on this repository; nothing to do."
+            echo "Set it with: gh secret set CRON_SECRET --body '<value>'"
+            exit 1
+          fi
+
+          code=$(curl -s -o response.json -w '%{http_code}' \
+            --max-time 600 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "https://vimaan-console.vercel.app/api/cron/collect?routes=$ROUTES")
+
+          echo "HTTP $code"
+          cat response.json
+          echo
+
+          # A pass that collected nothing is not a failure: the upstream cache
+          # only holds routes somebody searched for, so an empty pass is a real
+          # outcome and is reported as coverage rather than as an error.
+          if [ "$code" != "200" ]; then
+            echo "collection endpoint returned $code"
+            exit 1
+          fi
