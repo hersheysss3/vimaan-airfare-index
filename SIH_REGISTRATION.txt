@@ -1,0 +1,145 @@
+VIMAAN - SIH 2026 REGISTRATION FIELDS
+Problem Statement: SIH26056   Team: Bharat Bytes   Team ID: 26RBU142
+Theme: Travel & Tourism   Category: Software
+Plain text. Paste each block into the matching field.
+
+
+================================================================
+FIELD 1 - IDEA TITLE
+================================================================
+
+VIMAAN: A Real-Time Airfare Price Index for India's Consumer Price Index
+
+
+================================================================
+FIELD 2 - IDEA DESCRIPTION  (limit 1000 characters)
+================================================================
+
+India's CPI prices air travel from 78 routes read by hand, once a month, about 60 days before publication: one fare per route, when real fares move by departure date, advance-purchase window, cabin and carrier.
+
+VIMAAN automates that measurement. It samples 517 routes three times a day across 8 advance-purchase windows and a 60-day horizon - about 1,440 fares per route per month - from three lanes: airline tariff pages published under Rule 135(2) of the Aircraft Rules 1937, licensed distribution APIs, and public portals under robots.txt and rate budgets.
+
+The differentiator is the estimator, not the scraping. Airline inventory churns between collections, and a naively chained index invents drift from that churn alone. VIMAAN uses the estimators national statistics offices already use on web-collected prices: Jevons elementary aggregates, GEKS-Jevons multilateral on a 25-month rolling window, hedonic quality adjustment and DGCA passenger weights, published same day as SDMX-JSON.
+
+
+================================================================
+FIELD 3 - ABSTRACT SUMMARY  (limit 10,000 characters)
+================================================================
+
+1. THE PROBLEM
+
+Air travel sits inside the Transport group of India's Consumer Price Index, which carries a weight of 9.43% in the CPI 2024 series (MoSPI, PIB PRID 2227012). The airfare component is compiled from a manual collection run by the DGCA Tariff Monitoring Unit: 78 city-pairs, read by hand from airline websites, once a month, roughly 60 days ahead of publication (PIB/MoCA, PRID 1810467).
+
+That design was reasonable when fares were filed tariffs. It no longer matches how airlines price. A route does not have a price; it has a surface. The fare varies by departure date, by how far ahead the ticket is bought, by cabin, by carrier, by stops and by baggage inclusion. Recording one number per route per month collapses that surface to a point, and the point is chosen by whoever happened to open the browser that day. The lag compounds it: a fare observed 60 days before publication describes a market that has already moved.
+
+The consequence is not academic. The CPI feeds monetary policy, index-linked contracts and dearness allowance, so a component measured this thinly is a soft spot in an otherwise rigorous statistical system.
+
+
+2. THE PROPOSED SOLUTION
+
+VIMAAN - Validated Index of Market Airfares for Augmenting National-statistics - is an automated, reproducible airfare price index designed to be adopted by MoSPI as the airfare component of the CPI. It is not a consumer fare-search product.
+
+Scale of collection: 517 routes instead of 78, three times a day instead of once a month, across 8 advance-purchase windows (1, 3, 7, 14, 21, 30, 45 and 60 days) and a 60-day departure horizon. That is roughly 1,440 fare observations per route per month, against one today. Publication is same-day rather than lagged, delivered as an SDMX-JSON statistical feed so a national statistics pipeline can consume it directly.
+
+Route weights are real: DGCA monthly domestic city-pair traffic for 2024 (500 routes, 146.3 million passengers), weighting routes by actual passenger volume rather than by convenience.
+
+
+3. COLLECTION DESIGN - THREE LANES, RANKED BY DURABILITY
+
+Lane A, statutory. Rule 135(2) of the Aircraft Rules, 1937 requires every airline to publish its established tariff. This is a legal disclosure obligation, so the data cannot be withheld from us without the carrier breaching the rule. It is the most durable lane, and the reason the index does not depend on scraping goodwill.
+
+Lane B, licensed. Commercial distribution APIs used under their published terms. The project currently uses the Travelpayouts Data API, after Amadeus Self-Service was withdrawn from external developers on 17 July 2026.
+
+Lane C, public portals. Travel aggregator pages, collected with robots.txt honoured and a hard rate budget. This lane is blockable by design, and the index is built to survive on Lanes A and B alone.
+
+Out of scope as a design constraint, not an afterthought: no CAPTCHA solving, no login or paywall circumvention, no browser fingerprint spoofing, no personal data at any stage. VIMAAN measures published prices only.
+
+
+4. WHY THE METHOD IS THE PRODUCT
+
+Scraping volume is copyable. The estimator is where a statistical office's trust is won or lost.
+
+The central failure mode of a web-collected price index is chain drift. Airline inventory churns between collections - a flight sells out, a route is not scheduled that week, a new service starts - so the set of items matched from one period to the next keeps changing. A naive daily-chained index reads that churn as price movement and drifts away from truth even when prices are stable.
+
+We demonstrated this rather than asserting it. On a panel where prices return exactly to their base level, so the true index change is zero, 15% matched-sample churn produces a chained index reading of -61.26, while GEKS-Jevons on the same data produces +0.00. The drift is caused by sample churn, not by price volatility.
+
+VIMAAN therefore uses the estimators national statistics offices already apply to web-collected prices:
+
+- Jevons geometric mean for elementary aggregates, following the ILO/IMF/OECD/Eurostat CPI Manual 2020, which rejects Carli for its upward bias.
+- GEKS-Jevons multilateral index on a 25-month rolling window, spliced by mean splicing, cross-checked against a Time-Product-Dummy estimate.
+- Hedonic quality adjustment, so a change in what is being sold (stops, baggage, cabin) is not recorded as a change in price.
+- Targeted-mean imputation for gaps, with the imputed share published.
+- Lowe aggregation to the national index using DGCA passenger weights.
+- Month-of-departure attribution, following UK ONS practice on air fares.
+- Seasonal adjustment with Indian moving-holiday regressors.
+
+These are documented methods from ONS Methodology Working Paper 12, Statistics Canada's Air Transportation Index and the CPI Manual 2020. The contribution here is their application to Indian route data, with the supporting evidence published beside every figure.
+
+
+5. HONESTY AND QUALITY CONTROL, BUILT INTO THE OUTPUT
+
+A published figure is automatically flagged provisional when weighted route coverage falls below 70%, or when the imputed share exceeds 50%, and the reason is published with it. These are different failures and are reported separately: coverage asks whether the heavy routes were observed at all; imputation asks how much of what was published was actually measured.
+
+Every published value carries a reproducibility hash linking it to the raw payloads it was computed from, and every stored fare row links back to the hashed snapshot it was parsed from. The revision policy is published rather than left implicit. The console has a view, "Can You Trust It", whose purpose is to publish shortfalls rather than hide them, and an endpoint that reports the sampling design figures and the measured ones side by side.
+
+
+6. SYSTEM ARCHITECTURE
+
+Collection: Python collectors, one per lane, each rate-budgeted and robots-aware, writing raw payloads with a SHA-256 hash before any parsing.
+
+Storage: a medallion model - bronze holds the raw snapshot and its hash, silver holds normalised fare observations, gold holds the price surface cube and the computed indices. Deployment runs on Neon Postgres; SQLite is supported locally behind one compatibility layer.
+
+Index engine: the estimators above, implemented as a tested Python library (99 tests) rather than as spreadsheet steps.
+
+Delivery: a FastAPI service exposing the index, its provenance, route contributions and the SDMX-JSON payload, with collection running three times a day on a scheduled job.
+
+Front end: a working web console with four views - the published index with its provenance and live SDMX payload; a per-route price surface showing why one price per route is not enough; an interactive chain-drift demonstration with a rolling-window slider; and collection coverage with per-lane health. A guided walkthrough drives the console for a non-specialist audience.
+
+Proposed production stack for a pilot: Python 3.11, Playwright, PostgreSQL 16 with TimescaleDB, Polars, statsmodels, X-13ARIMA-SEATS, FastAPI, React, Docker Compose.
+
+
+7. CURRENT STATUS - WHAT IS REAL AND WHAT IS NOT
+
+We state this precisely, because a statistical product that blurs it is worthless.
+
+Real and sourced: CPI 2024 group weights including Transport at 9.43%; the 78-route manual baseline; DGCA 2024 city-pair traffic used as route weights; India's boundary data; the estimators themselves; and the index engine, database, API and console, which run and are tested.
+
+Genuinely collected: fares from the licensed Lane B API, tagged by source and linked to their hashed raw payloads.
+
+Simulated and labelled as such: the bulk of the historical fare panel, generated by an explicit simulation script and tagged simulated in the database, because 32 months of Indian fare history cannot be collected retrospectively. The chain-drift demonstration and the coverage map are illustrations built from the sampling design. Nothing simulated is presented as measured.
+
+
+8. VALIDATION PLAN
+
+Benchmarking against MoSPI's own manually collected airfare series over overlapping months. Cross-lane divergence testing with a flag threshold, so disagreement between the statutory, licensed and portal lanes surfaces instead of averaging away. Leave-one-route-out sensitivity analysis on the DGCA weights. Time-Product-Dummy run in parallel to GEKS-Jevons as a standing cross-check. A published revision policy.
+
+
+9. IMPACT AND BENEFICIARIES
+
+MoSPI gains an airfare component measured with roughly 1,440 observations per route per month instead of one, published same day instead of two months late, in the SDMX format its pipeline already speaks. DGCA's Tariff Monitoring Unit gains an automated, auditable tariff observation trail. The RBI and users of index-linked contracts gain a less noisy transport component. The method generalises: the same estimator stack applies to any dynamically priced service entering the CPI - rail, hotels, intercity buses, ride-hailing.
+
+
+10. FEASIBILITY AND RISKS
+
+The main risk is collection blocking, and it is answered structurally: Lane A is a statutory disclosure that cannot be blocked without breaching the Aircraft Rules, and the index is designed to survive on Lanes A and B if Lane C is lost entirely. The second risk is methodological criticism from statisticians, answered by using published NSO methods rather than inventing an estimator. The third is data honesty, answered by the coverage and imputation flags, the reproducibility hashes and the explicit simulated-versus-measured labelling above.
+
+
+================================================================
+FIELD 4 - TECHNOLOGY BUCKET
+================================================================
+
+Primary answer:
+
+Data Analytics and Big Data
+
+If the form's list does not offer that, in order of fit:
+  1. Web and Software Development
+  2. Cloud Computing
+  3. Web Scraping / Automation
+
+Note: do not select AI/ML. VIMAAN is deliberately a statistical index-number
+system (Jevons, GEKS-Jevons, hedonic regression), not a machine-learning
+product, and claiming AI/ML invites a viva question we would have to walk back.
+If the form forces a bucket and AI/ML is the only computational option, pick it
+and say in the viva that the modelling is econometric - hedonic regression and
+RegARIMA - rather than a learned model.
