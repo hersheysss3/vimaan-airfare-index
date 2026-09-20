@@ -22,10 +22,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # rebuilt from a clean clone. Point SIH_TEMPLATE elsewhere to override.
 TPL = os.environ.get("SIH_TEMPLATE") or os.path.join(
     HERE, "template", "SIH2026-IDEA-Presentation-Format.pptx")
-OUT = os.path.join(HERE, "26RBU142_SIH26056_BharatBytes.pptx")
+OUT = os.path.join(HERE, "151901_SIH26056_Bharat Bytes_26.pptx")
 
-TEAM = "Bharat Bytes"
-TEAM_ID = "<TEAM ID>"
+TEAM = "Bharat Bytes_26"
+TEAM_ID = "151901"
 
 # ---- template-native palette -------------------------------------------------
 NAVY   = RGBColor(0x1F, 0x49, 0x7D)   # theme dk2

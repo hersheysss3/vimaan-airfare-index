@@ -91,8 +91,8 @@ circumvention, no fingerprint spoofing, and no personal data at any stage.
 │   ├── _prims.py                shared python-pptx primitives
 │   ├── n_*.png                  the generated chart plates
 │   └── prep/prep.html           source for the team run sheet
-├── 26RBU142_SIH26056_BharatBytes.pptx    the submission deck
-├── 26RBU142_SIH26056_BharatBytes.pdf
+├── 151901_SIH26056_Bharat Bytes_26.pptx    the submission deck
+├── 151901_SIH26056_Bharat Bytes_26.pdf
 ├── VIMAAN_Presentation_Prep.pdf                13-page team run sheet
 └── SOLUTION_PLAN.md                            full technical plan
 ```

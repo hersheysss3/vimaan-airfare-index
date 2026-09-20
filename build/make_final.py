@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Final SIH 2026 deck for SIH26056 (VIMAAN), Team Bharat Bytes.
+Final SIH 2026 deck for SIH26056 (VIMAAN), Team Bharat Bytes_26.
 
 Difference from make_visual.py: every AI-generated illustration is gone.
   * data visuals  -> real matplotlib plates from plates.py (n_*.png)
@@ -16,13 +16,13 @@ left exactly as shipped. Six slides, title slide included.
 import os
 from PIL import Image
 from _prims import (Presentation, Inches, Pt, RGBColor, PP_ALIGN, MSO_ANCHOR,
-                    MSO_SHAPE, TPL, TEAM, HERE,
+                    MSO_SHAPE, TPL, TEAM, TEAM_ID, HERE,
                     NAVY, INK, MUTED, FAINT, AMBER, TEAL, RED, WHITE,
                     BLUE_FILL, BLUE_LINE, AMBER_FILL, AMBER_LINE,
                     GREY_FILL, GREY_LINE,
                     noshadow, tb, par, run, box, eyebrow, card, chip, pic, find, drop)
 
-OUT = os.path.join(HERE, "26RBU142_SIH26056_BharatBytes.pptx")
+OUT = os.path.join(HERE, "151901_SIH26056_Bharat Bytes_26.pptx")
 
 GREEN = RGBColor(0x1B, 0x7A, 0x3C)
 GOLD  = RGBColor(0xF3, 0xC6, 0x7A)
@@ -322,12 +322,17 @@ ROWS = [("Problem Statement ID", "SIH26056"),
          "Consumer Price Index (CPI)"),
         ("Theme", "Travel & Tourism"),
         ("PS Category", "Software"),
-        ("Team Name", TEAM)]
+        ("Team Name", TEAM),
+        ("Team ID", TEAM_ID)]
+# Six rows now have to clear the VIMAAN band at 3.62, where five sat
+# comfortably. The type comes down a point and the gap between rows with it,
+# rather than letting the long PS title reflow into the band.
+LOUD = ("Problem Statement ID", "Team Name", "Team ID")
 for i, (k, v) in enumerate(ROWS):
-    p = par(tf, first=(i == 0), after=6, line=1.06)
-    run(p, "•  " + k + " – ", 14, INK, bold=True)
-    run(p, v, 13.5, NAVY if k != "Team Name" else AMBER,
-        bold=(k in ("Problem Statement ID", "Team Name")))
+    p = par(tf, first=(i == 0), after=4, line=1.04)
+    run(p, "•  " + k + " – ", 13, INK, bold=True)
+    run(p, v, 12.5, AMBER if k in ("Team Name", "Team ID") else NAVY,
+        bold=(k in LOUD))
 
 b = box(s, 0.36, 3.62, TXW, 1.08, fill=NAVY, line=NAVY)
 tf = b.text_frame
